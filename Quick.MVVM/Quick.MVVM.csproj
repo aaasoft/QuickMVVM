@@ -60,9 +60,7 @@
     <Compile Include="ViewModel\ViewModelBase.cs" />
     <Compile Include="ViewModel\ViewModelManager.cs" />
     <Compile Include="View\Behaviors\FrameworkElementWindowDataBehavior.cs" />
-    <Compile Include="View\IXamlFilter.cs" />
     <Compile Include="View\ViewManager.cs" />
-    <Compile Include="View\XamlManager.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

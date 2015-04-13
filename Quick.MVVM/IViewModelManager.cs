@@ -12,6 +12,10 @@ namespace Quick.MVVM
     public interface IViewModelManager
     {
         /// <summary>
+        /// 创建ViewModel之前要执行的Action
+        /// </summary>
+        Action<IViewModel> AfterViewModelCreated { get; set; }
+        /// <summary>
         /// 注册视图模型
         /// </summary>
         /// <typeparam name="TViewModelType"></typeparam>

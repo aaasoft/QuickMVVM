@@ -10,7 +10,9 @@ namespace Quick.MVVM.ViewModel
     {
         private HashSet<Assembly> scanedAssemblyHashSet = new HashSet<Assembly>();
         private Dictionary<Type, Type> viewModelTypeViewModelImplTypeDict = new Dictionary<Type, Type>();
-        
+
+        public Action<IViewModel> AfterViewModelCreated { get; set; }
+
         public void RegisterViewModel<TViewModelType, TViewModelImplType>()
         {
             RegisterViewModel(typeof(TViewModelType), typeof(TViewModelImplType));
@@ -49,7 +51,7 @@ namespace Quick.MVVM.ViewModel
             viewModel.Init();
             return viewModel;
         }
-
+        
         private IViewModel _CreateInstance(Type viewModelType)
         {
             //如果此程序集没有扫描过，则扫描此程序集中所有的类
@@ -63,19 +65,8 @@ namespace Quick.MVVM.ViewModel
                 return null;
             Type viewModelImplType = viewModelTypeViewModelImplTypeDict[viewModelType];
             IViewModel viewModel = (IViewModel)Activator.CreateInstance(viewModelImplType);
-
-            ////注入BLL
-            //FieldInfo[] fis = viewModelImplType.GetFields(
-            //    System.Reflection.BindingFlags.NonPublic
-            //    | System.Reflection.BindingFlags.Public
-            //    | System.Reflection.BindingFlags.Instance);
-            //foreach (FieldInfo fi in fis)
-            //{
-            //    if (!typeof(LCSoft.DCIMS.Client.Data.Db.BLL.BaseBLL).IsAssignableFrom(fi.FieldType))
-            //        continue;
-            //    fi.SetValue(viewModel, DbManager.Instance.GetBllInstance(fi.FieldType));
-            //}
-            
+            if (AfterViewModelCreated != null)
+                AfterViewModelCreated.Invoke(viewModel);
             return viewModel;
         }
 
