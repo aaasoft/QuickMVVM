@@ -8,7 +8,7 @@ namespace Quick.MVVM.ViewModel
 {
     public class DelegateNavigator : INavigator
     {
-        private ViewModelManager viewModelManager;
+        private IViewModelManager viewModelManager;
         private object _ViewModel;
         public object ViewModel { get { return _ViewModel; } }
 
@@ -19,7 +19,7 @@ namespace Quick.MVVM.ViewModel
         /// </summary>
         public Action<IViewModel, Type> NavigateAction { get; set; }
 
-        public DelegateNavigator(ViewModelManager viewModelManager)
+        public DelegateNavigator(IViewModelManager viewModelManager)
         {
             this.viewModelManager = viewModelManager;
         }
@@ -38,6 +38,8 @@ namespace Quick.MVVM.ViewModel
 
         public void Navigate(IViewModel viewModel, Type viewModelType)
         {
+            if (viewModel == null)
+                throw new ApplicationException("Argument 'ViewModel' is null!");
             if (NavigateAction == null)
                 throw new ApplicationException("In class DelegateNavigator, NavigateAction is null!");
             viewModel.Navigator = this;

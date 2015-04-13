@@ -4,4 +4,6 @@
 
 /Quick.MVVM/bin
 /Quick.MVVM/obj
+/Demo/bin
+/Demo/obj
 *.suo
