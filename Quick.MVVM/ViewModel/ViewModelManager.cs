@@ -6,15 +6,9 @@ using System.Text;
 
 namespace Quick.MVVM.ViewModel
 {
-    public class ViewModelManager
+    public class ViewModelManager : IViewModelManager
     {
-        private static ViewModelManager _Instance;
-        public static ViewModelManager Instance { get { return _Instance; } }
-        static ViewModelManager()
-        {
-            _Instance = new ViewModelManager();
-        }
-
+        private HashSet<Assembly> scanedAssemblyHashSet = new HashSet<Assembly>();
         private Dictionary<Type, Type> viewModelTypeViewModelImplTypeDict = new Dictionary<Type, Type>();
         
         public void RegisterViewModel<TViewModelType, TViewModelImplType>()
@@ -28,7 +22,7 @@ namespace Quick.MVVM.ViewModel
             return CreateInstance<TViewModelType>(null);
         }
 
-        internal TViewModelType CreateInstance<TViewModelType>(Action<TViewModelType> initAction)
+        public TViewModelType CreateInstance<TViewModelType>(Action<TViewModelType> initAction)
             where TViewModelType : class,IViewModel
         {
             TViewModelType viewModel = _CreateInstance(typeof(TViewModelType)) as TViewModelType;
@@ -58,6 +52,13 @@ namespace Quick.MVVM.ViewModel
 
         private IViewModel _CreateInstance(Type viewModelType)
         {
+            //如果此程序集没有扫描过，则扫描此程序集中所有的类
+            if (!scanedAssemblyHashSet.Contains(viewModelType.Assembly))
+            {
+                foreach (Type type in viewModelType.Assembly.GetTypes())
+                    scanType(type);
+            }
+
             if (!viewModelTypeViewModelImplTypeDict.ContainsKey(viewModelType))
                 return null;
             Type viewModelImplType = viewModelTypeViewModelImplTypeDict[viewModelType];
@@ -88,13 +89,9 @@ namespace Quick.MVVM.ViewModel
             viewModelTypeViewModelImplTypeDict[viewModelType] = viewModelImplType;
         }
 
-        /// <summary>
-        /// 搜索视图模型
-        /// </summary>
-        /// <param name="type"></param>
-        public void ScanType(Type type)
+        // 搜索视图模型
+        private void scanType(Type type)
         {
-            //String typeName = type.FullName;
             if (!typeof(IViewModel).IsAssignableFrom(type))
                 return;
 

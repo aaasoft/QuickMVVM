@@ -15,20 +15,42 @@ namespace Quick.MVVM.View
     /// <summary>
     /// 用于加载视图模型对应视图的管理器
     /// </summary>
-    public class ViewManager
+    public class ViewManager : IViewManager
     {
         private String viewFileFolder;
         private String currentTheme = "Default";
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
+        private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
 
+        /// <summary>
+        /// 视图模型管理器
+        /// </summary>
+        public IViewModelManager ViewModelManager { get; set; }
         /// <summary>
         /// 默认错误显示模板
         /// </summary>
         public ControlTemplate DefaultErrorTemplate { get; set; }
+        public String CurrentTheme
+        {
+            get { return currentTheme; }
+            set
+            {
+                currentTheme = value;
+                changeTheme(value);
+            }
+        }
 
         public ViewManager(String viewFileFolder)
         {
             this.viewFileFolder = viewFileFolder;
+
+            
+        }
+
+        //改变主题
+        private void changeTheme(string themeName)
+        {
+
         }
 
         public void RegisterView<TViewModelType, TViewType>()
@@ -55,7 +77,7 @@ namespace Quick.MVVM.View
         /// <returns></returns>
         public Object GetView(IViewModel viewModel)
         {
-            Type viewModelType = ViewModelManager.Instance.GetViewModelInterfaceType(viewModel);
+            Type viewModelType = ViewModelManager.GetViewModelInterfaceType(viewModel);
             if (viewModelType == null)
                 return null;
             return GetView(viewModel, viewModelType);
@@ -70,6 +92,17 @@ namespace Quick.MVVM.View
             FrameworkElement element = GetView(viewModelType);
             if (element == null)
                 throw new ApplicationException(String.Format("Cann't found view file for ViewModel '{0}'.", viewModelType.FullName));
+            //当可见性发生改变时
+            element.IsVisibleChanged += (sender, e) =>
+            {
+                if (viewModel.View == null || viewModel.View != element)
+                    return;
+
+                if (element.IsVisible)
+                    currentVisiableViewModelHashSet.Add(viewModel);
+                else
+                    currentVisiableViewModelHashSet.Remove(viewModel);
+            };
             element.DataContext = viewModel;
             viewModel.View = element;
             //设置所有控件的默认错误模板
@@ -232,7 +265,7 @@ namespace Quick.MVVM.View
         public Object GetView<TViewModelType>(Action<TViewModelType> initAction)
             where TViewModelType : class,IViewModel
         {
-            IViewModel viewModel = ViewModelManager.Instance.CreateInstance<TViewModelType>(initAction);
+            IViewModel viewModel = ViewModelManager.CreateInstance<TViewModelType>(initAction);
             if (viewModel == null)
                 return null;
             return GetView(viewModel, typeof(TViewModelType));

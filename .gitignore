@@ -2,6 +2,6 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/Quick.MVVM/bin/Debug
-/Quick.MVVM/obj/Debug
+/Quick.MVVM/bin
+/Quick.MVVM/obj
 *.suo
