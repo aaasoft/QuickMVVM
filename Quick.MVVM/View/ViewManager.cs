@@ -32,8 +32,11 @@ namespace Quick.MVVM.View
         {
             element.SetValue(CurrentThemeProperty, currentTheme);
         }
+        /// <summary>
+        /// 视图文件目录
+        /// </summary>
+        public String ViewFileFolder { get; set; }
 
-        private String viewFileFolder;
         private String currentTheme = CONST_DEFAULT_THEME;
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
         private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
@@ -58,7 +61,7 @@ namespace Quick.MVVM.View
 
         public ViewManager(String viewFileFolder)
         {
-            this.viewFileFolder = viewFileFolder;
+            this.ViewFileFolder = viewFileFolder;
         }
 
         //改变主题
@@ -185,7 +188,7 @@ namespace Quick.MVVM.View
             ////视图模型接口类完整名称
             String viewModelTypeFullName = viewModelType.FullName;
             //当前View的基础目录
-            String currentViewBaseFolder = Path.Combine(viewFileFolder, CurrentTheme, viewModelAssemblyName);
+            String currentViewBaseFolder = Path.Combine(ViewFileFolder, CurrentTheme, viewModelAssemblyName);
 
             //要搜索的可能的xaml文件名称
             List<String> viewXamlFileNameList = new List<string>()

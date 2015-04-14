@@ -22,6 +22,10 @@ namespace Quick.MVVM
         /// </summary>
         ControlTemplate DefaultErrorTemplate { get; set; }
         /// <summary>
+        /// 视图文件目录
+        /// </summary>
+        String ViewFileFolder { get; set; }
+        /// <summary>
         /// 获取或设置当前主题
         /// </summary>
         String CurrentTheme { get; set; }
