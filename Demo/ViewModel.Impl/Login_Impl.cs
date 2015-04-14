@@ -10,7 +10,7 @@ namespace Demo.ViewModel.Impl
     public class Login_Impl : ViewModelBase, ILogin
     {
         private String _UserName;
-        public string UserName 
+        public string UserName
         {
             get { return _UserName; }
             set
@@ -21,6 +21,7 @@ namespace Demo.ViewModel.Impl
         }
 
         public System.Windows.Input.ICommand Login { get; private set; }
+        public System.Windows.Input.ICommand ChangeTheme { get; private set; }
 
         public override void Init()
         {
@@ -29,6 +30,7 @@ namespace Demo.ViewModel.Impl
                 ExecuteCommand = executeCommand_Login,
                 CanExecuteCommand = canExecuteCommand_Login
             };
+            ChangeTheme = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeTheme };
         }
 
         /// <summary>
@@ -48,6 +50,11 @@ namespace Demo.ViewModel.Impl
         private bool canExecuteCommand_Login(Object obj)
         {
             return !String.IsNullOrWhiteSpace(UserName);
+        }
+
+        private void executeCommand_ChangeTheme(object argument)
+        {
+            Start.ViewManager.CurrentTheme = argument.ToString();
         }
     }
 }

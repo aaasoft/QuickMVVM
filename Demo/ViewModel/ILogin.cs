@@ -17,5 +17,9 @@ namespace Demo.ViewModel
         /// 登录命令(PasswordBox控件作为此命令的参数)
         /// </summary>
         ICommand Login { get; }
+        /// <summary>
+        /// 改变主题
+        /// </summary>
+        ICommand ChangeTheme { get; }
     }
 }

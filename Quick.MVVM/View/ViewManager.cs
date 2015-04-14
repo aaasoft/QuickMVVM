@@ -1,4 +1,5 @@
-﻿using Quick.MVVM.ViewModel;
+﻿using Quick.MVVM.Utils;
+using Quick.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,8 +18,23 @@ namespace Quick.MVVM.View
     /// </summary>
     public class ViewManager : IViewManager
     {
+        public const String CONST_DEFAULT_THEME = "Default";
+
+        private static DependencyProperty CurrentThemeProperty = DependencyProperty.RegisterAttached("CurrentTheme", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_THEME));
+        // 获取视图的当前主题
+        private static String GetViewCurrentTheme(FrameworkElement element)
+        {
+            return element.GetValue(CurrentThemeProperty) as String;
+        }
+
+        // 设置视图的当前主题
+        private static void SetViewCurrentTheme(FrameworkElement element, String currentTheme)
+        {
+            element.SetValue(CurrentThemeProperty, currentTheme);
+        }
+
         private String viewFileFolder;
-        private String currentTheme = "Default";
+        private String currentTheme = CONST_DEFAULT_THEME;
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
         private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
 
@@ -36,21 +52,31 @@ namespace Quick.MVVM.View
             set
             {
                 currentTheme = value;
-                changeTheme(value);
+                changeToCurrentTheme();
             }
         }
 
         public ViewManager(String viewFileFolder)
         {
             this.viewFileFolder = viewFileFolder;
-
-            
         }
 
         //改变主题
-        private void changeTheme(string themeName)
+        private void changeToCurrentTheme()
         {
+            foreach (IViewModel viewModel in currentVisiableViewModelHashSet)
+                changeToCurrentTheme(viewModel);
+        }
 
+        //改变主题
+        private void changeToCurrentTheme(IViewModel viewModel)
+        {
+            FrameworkElement preView = viewModel.View as FrameworkElement;
+            if (preView == null)
+                return;
+            viewModel.View = null;
+            FrameworkElement nextView = GetView(viewModel) as FrameworkElement;
+            FrameworkElementUtils.Exchange(preView, nextView);
         }
 
         public void RegisterView<TViewModelType, TViewType>()
@@ -99,10 +125,16 @@ namespace Quick.MVVM.View
                     return;
 
                 if (element.IsVisible)
-                    currentVisiableViewModelHashSet.Add(viewModel);
+                {
+                    if (GetViewCurrentTheme(element) == CurrentTheme)
+                        currentVisiableViewModelHashSet.Add(viewModel);
+                    else
+                        changeToCurrentTheme(viewModel);
+                }
                 else
                     currentVisiableViewModelHashSet.Remove(viewModel);
             };
+            SetViewCurrentTheme(element, CurrentTheme);
             element.DataContext = viewModel;
             viewModel.View = element;
             //设置所有控件的默认错误模板
@@ -153,7 +185,7 @@ namespace Quick.MVVM.View
             ////视图模型接口类完整名称
             String viewModelTypeFullName = viewModelType.FullName;
             //当前View的基础目录
-            String currentViewBaseFolder = Path.Combine(viewFileFolder, currentTheme, viewModelAssemblyName);
+            String currentViewBaseFolder = Path.Combine(viewFileFolder, CurrentTheme, viewModelAssemblyName);
 
             //要搜索的可能的xaml文件名称
             List<String> viewXamlFileNameList = new List<string>()

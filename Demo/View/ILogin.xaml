@@ -36,6 +36,8 @@
                         </Binding>
                     </TextBox.Text>
                 </TextBox>
+                
+                <Button Grid.Row="2" Margin="10" Content="Change Theme" Command="{Binding ChangeTheme}" CommandParameter="Blue" />
             </Grid>
         </DockPanel>
     </Grid>
