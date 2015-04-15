@@ -78,8 +78,16 @@ namespace Quick.MVVM.View
             if (preView == null)
                 return;
             viewModel.View = null;
-            FrameworkElement nextView = GetView(viewModel) as FrameworkElement;
-            FrameworkElementUtils.Exchange(preView, nextView);
+            try
+            {
+                FrameworkElement nextView = GetView(viewModel) as FrameworkElement;
+                FrameworkElementUtils.Exchange(preView, nextView);
+            }
+            catch (Exception ex)
+            {
+                viewModel.View = String.Format("Failed to change theme to [{0}].", CurrentTheme);
+                throw ex;
+            }
         }
 
         public void RegisterView<TViewModelType, TViewType>()
@@ -132,7 +140,8 @@ namespace Quick.MVVM.View
                     if (GetViewCurrentTheme(element) == CurrentTheme)
                         currentVisiableViewModelHashSet.Add(viewModel);
                     else
-                        changeToCurrentTheme(viewModel);
+                        try { changeToCurrentTheme(viewModel); }
+                        catch { }
                 }
                 else
                     currentVisiableViewModelHashSet.Remove(viewModel);
