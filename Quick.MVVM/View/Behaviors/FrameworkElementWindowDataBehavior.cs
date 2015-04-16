@@ -48,7 +48,11 @@ namespace Quick.MVVM.View.Behaviors
                         win.Title = Title;
                     element.Dispatcher.BeginInvoke(new Action(() => win.SizeToContent = SizeToContent));
                     element.Dispatcher.BeginInvoke(new Action(() => win.WindowState = WindowState));
-                    element.Dispatcher.BeginInvoke(new Action(() => win.WindowStyle = WindowStyle));
+                    element.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (win.AllowsTransparency == false)
+                            win.WindowStyle = WindowStyle;
+                    }));
                     element.Dispatcher.BeginInvoke(new Action(() => win.ResizeMode = ResizeMode));
                     element.Dispatcher.BeginInvoke(new Action(() =>
                         {
