@@ -323,8 +323,13 @@ namespace Quick.MVVM.View
                         else
                         {
                             currentAssembly = viewModelAssembly;
-                            String viewModelFolderPath = Path.GetDirectoryName(viewModelTypeFullName.Replace('.', Path.DirectorySeparatorChar));
-                            fullPath = Path.Combine(viewModelFolderPath, path).Replace(Path.DirectorySeparatorChar, '.');
+                            if (path.StartsWith("."))
+                            {
+                                String viewModelFolderPath = Path.GetDirectoryName(viewModelTypeFullName.Replace('.', Path.DirectorySeparatorChar));
+                                fullPath = Path.Combine(viewModelFolderPath, path).Replace(Path.DirectorySeparatorChar, '.');
+                            }
+                            else
+                                fullPath = path;
                         }
                         return getXamlContent(fullPath, currentAssembly);
                     });
