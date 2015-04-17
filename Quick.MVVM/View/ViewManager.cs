@@ -188,16 +188,11 @@ namespace Quick.MVVM.View
             }
         }
 
-        public FrameworkElement GetView(Type viewModelType)
+        private String getXamlContent(String viewModelTypeFullName, Assembly viewModelAssembly)
         {
-            //视图模型接口类所在的程序集
-            Assembly viewModelAssembly = viewModelType.Assembly;
             //视图模型接口类所在的程序集名称
             String viewModelAssemblyName = viewModelAssembly.GetName().Name;
-            ////视图模型接口类完整名称
-            String viewModelTypeFullName = viewModelType.FullName;
-            //当前View的基础目录
-            String currentViewBaseFolder = Path.Combine(ViewFileFolder, CurrentTheme, viewModelAssemblyName);
+            String viewBaseFolder = Path.Combine(ViewFileFolder, CurrentTheme, viewModelAssemblyName);
 
             //要搜索的可能的xaml文件名称
             List<String> viewXamlFileNameList = new List<string>()
@@ -217,7 +212,7 @@ namespace Quick.MVVM.View
             String viewXamlFilePath = null;
             foreach (String viewXamlFileName in viewXamlFileNameList)
             {
-                viewXamlFilePath = Path.Combine(currentViewBaseFolder, viewXamlFileName + ".xaml");
+                viewXamlFilePath = Path.Combine(viewBaseFolder, viewXamlFileName + ".xaml");
                 isViewXamlFileExists = File.Exists(viewXamlFilePath);
                 if (isViewXamlFileExists)
                     break;
@@ -247,49 +242,93 @@ namespace Quick.MVVM.View
                     }
                 }
             }
+            if (xamlContent == null)
+                return null;
+
+            Regex regex = null;
+            //替换clr namespace
+            //(?'String'xmlns:.*?="(?'ClrNamespace'clr-namespace:.*?[^\\])")
+            regex = new Regex("(?'String'xmlns:.*?=\"(?'ClrNamespace'clr-namespace:.*?[^\\\\])\")");
+            xamlContent = regex.Replace(xamlContent, match =>
+            {
+                var clrNamespaceGroup = match.Groups["ClrNamespace"];
+
+                String matchValue = match.Value;
+                String clrNamespaceValue = clrNamespaceGroup.Value;
+
+                if (clrNamespaceValue.Contains("assembly="))
+                    return matchValue;
+                String newValue = matchValue.Replace(clrNamespaceValue, String.Format("{0};assembly={1}", clrNamespaceValue, viewModelAssemblyName));
+                return newValue;
+            });
+            //替换资源路径的相对路径为绝对路径
+            //"(?'Resource'\.{0,2}/.*?[^\\](?'Extension'\.png|\.jpg|\.xml|\.xaml))"
+            //"./Images/Folder.png"
+            regex = new Regex("\"(?'Resource'\\.{0,2}/.*?[^\\\\](?'Extension'\\.png|\\.jpg|\\.xml|\\.xaml))\"");
+            xamlContent = regex.Replace(xamlContent, match =>
+            {
+                var resourceGroup = match.Groups["Resource"];
+
+                String matchValue = match.Value;
+                String resourceValue = resourceGroup.Value;
+                String newResourceUri = String.Empty;
+
+                String resourceFullPath = Path.Combine(viewBaseFolder, resourceValue);
+                //如果资源文件存在
+                if (File.Exists(resourceFullPath))
+                    newResourceUri = new Uri(resourceFullPath).AbsoluteUri;
+                //否则从程序集资源中获取
+                else
+                    newResourceUri = String.Format("pack://application:,,,/{0};component/View/{1}", viewModelAssemblyName, resourceValue);
+                return String.Format("\"{0}\"", newResourceUri);
+            });
+            return xamlContent;
+        }
+
+        public FrameworkElement GetView(Type viewModelType)
+        {
+            //视图模型接口类所在的程序集
+            Assembly viewModelAssembly = viewModelType.Assembly;
+            //视图模型接口类所在的程序集名称
+            String viewModelAssemblyName = viewModelAssembly.GetName().Name;
+            ////视图模型接口类完整名称
+            String viewModelTypeFullName = viewModelType.FullName;
+            
+            String xamlContent = getXamlContent(viewModelTypeFullName, viewModelAssembly);
 
             //如果得到了xaml内容
             if (!String.IsNullOrEmpty(xamlContent))
             {
                 Regex regex = null;
 
-                //替换clr namespace
-                //(?'String'xmlns:.*?="(?'ClrNamespace'clr-namespace:.*?[^\\])")
-                regex = new Regex("(?'String'xmlns:.*?=\"(?'ClrNamespace'clr-namespace:.*?[^\\\\])\")");
-                xamlContent = regex.Replace(xamlContent, match =>
+                //处理#include预处理指令
+                //<!--#include\("path=(?'path'.*?)(;assembly=(?'assembly'.*?))?"\)-->
+                regex = new Regex("<!--#include\\(\"path=(?'path'.*?)(;assembly=(?'assembly'.*?))?\"\\)-->");
+                while (regex.IsMatch(xamlContent))
                 {
-                    var clrNamespaceGroup = match.Groups["ClrNamespace"];
+                    xamlContent = regex.Replace(xamlContent, match =>
+                    {
+                        var pathGroup = match.Groups["path"];
+                        var assemblyGroup = match.Groups["assembly"];
 
-                    String matchValue = match.Value;
-                    String clrNamespaceValue = clrNamespaceGroup.Value;
+                        String path = pathGroup.Value;
+                        Assembly currentAssembly = null;
 
-                    if (clrNamespaceValue.Contains("assembly="))
-                        return matchValue;
-                    String newValue = matchValue.Replace(clrNamespaceValue, String.Format("{0};assembly={1}", clrNamespaceValue, viewModelAssemblyName));
-                    return newValue;
-                });
-                //替换资源路径的相对路径为绝对路径
-                //"(?'Resource'\.{0,2}/.*?[^\\](?'Extension'\.png|\.jpg|\.xml|\.xaml))"
-                //"./Images/Folder.png"
-                regex = new Regex("\"(?'Resource'\\.{0,2}/.*?[^\\\\](?'Extension'\\.png|\\.jpg|\\.xml|\\.xaml))\"");
-                xamlContent = regex.Replace(xamlContent, match =>
-                {
-                    var resourceGroup = match.Groups["Resource"];
-
-                    String matchValue = match.Value;
-                    String resourceValue = resourceGroup.Value;
-                    String newResourceUri = String.Empty;
-
-                    String resourceFullPath = Path.Combine(currentViewBaseFolder, resourceValue);
-                    //如果资源文件存在
-                    if (File.Exists(resourceFullPath))
-                        newResourceUri = new Uri(resourceFullPath).AbsoluteUri;
-                    //否则从程序集资源中获取
-                    else
-                        newResourceUri = String.Format("pack://application:,,,/{0};component/View/{1}", viewModelAssemblyName, resourceValue);
-                    return String.Format("\"{0}\"", newResourceUri);
-                });
-
+                        String fullPath = null;
+                        if (assemblyGroup.Success)
+                        {
+                            currentAssembly = Assembly.Load(assemblyGroup.Value);
+                            fullPath = path;
+                        }
+                        else
+                        {
+                            currentAssembly = viewModelAssembly;
+                            String viewModelFolderPath = Path.GetDirectoryName(viewModelTypeFullName.Replace('.', Path.DirectorySeparatorChar));
+                            fullPath = Path.Combine(viewModelFolderPath, path).Replace(Path.DirectorySeparatorChar, '.');
+                        }
+                        return getXamlContent(fullPath, currentAssembly);
+                    });
+                }
                 return (FrameworkElement)System.Windows.Markup.XamlReader.Parse(xamlContent);
             }
 
