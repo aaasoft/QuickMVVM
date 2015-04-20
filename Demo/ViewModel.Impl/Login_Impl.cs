@@ -22,6 +22,7 @@ namespace Demo.ViewModel.Impl
 
         public System.Windows.Input.ICommand Login { get; private set; }
         public System.Windows.Input.ICommand ChangeTheme { get; private set; }
+        public System.Windows.Input.ICommand ChangeLanguage { get; private set; }
 
         public override void Init()
         {
@@ -31,6 +32,7 @@ namespace Demo.ViewModel.Impl
                 CanExecuteCommand = canExecuteCommand_Login
             };
             ChangeTheme = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeTheme };
+            ChangeLanguage = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeLanguage };
         }
 
         /// <summary>
@@ -55,6 +57,11 @@ namespace Demo.ViewModel.Impl
         private void executeCommand_ChangeTheme(object argument)
         {
             Start.ViewManager.CurrentTheme = argument.ToString();
+        }
+
+        private void executeCommand_ChangeLanguage(object argument)
+        {
+            Start.ViewManager.CurrentLanguage = argument.ToString();
         }
     }
 }

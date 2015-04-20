@@ -19,25 +19,40 @@ namespace Quick.MVVM.View
     public class ViewManager : IViewManager
     {
         public const String CONST_DEFAULT_THEME = "Default";
+        public const String CONST_DEFAULT_LANGUAGE = "zh-CN";
 
         private static DependencyProperty CurrentThemeProperty = DependencyProperty.RegisterAttached("CurrentTheme", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_THEME));
+        private static DependencyProperty CurrentLanguageProperty = DependencyProperty.RegisterAttached("CurrentLanguage", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_LANGUAGE));
+
         // 获取视图的当前主题
         private static String GetViewCurrentTheme(FrameworkElement element)
         {
             return element.GetValue(CurrentThemeProperty) as String;
         }
-
         // 设置视图的当前主题
         private static void SetViewCurrentTheme(FrameworkElement element, String currentTheme)
         {
             element.SetValue(CurrentThemeProperty, currentTheme);
         }
+        // 获取视图的当前语言
+        private static String GetViewCurrentLanguage(FrameworkElement element)
+        {
+            return element.GetValue(CurrentLanguageProperty) as String;
+        }
+        // 设置视图的当前主题
+        private static void SetViewCurrentLanguage(FrameworkElement element, String currentLanguage)
+        {
+            element.SetValue(CurrentLanguageProperty, currentLanguage);
+        }
+
         /// <summary>
         /// 视图文件目录
         /// </summary>
         public String ViewFileFolder { get; set; }
 
         private String currentTheme = CONST_DEFAULT_THEME;
+        private String currentLanguage = CONST_DEFAULT_LANGUAGE;
+
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
         private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
 
@@ -49,13 +64,28 @@ namespace Quick.MVVM.View
         /// 默认错误显示模板
         /// </summary>
         public ControlTemplate DefaultErrorTemplate { get; set; }
+        /// <summary>
+        /// 当前主题
+        /// </summary>
         public String CurrentTheme
         {
             get { return currentTheme; }
             set
             {
                 currentTheme = value;
-                changeToCurrentTheme();
+                reloadView();
+            }
+        }
+        /// <summary>
+        /// 当前语言
+        /// </summary>
+        public String CurrentLanguage
+        {
+            get { return currentLanguage; }
+            set
+            {
+                currentLanguage = value;
+                reloadView();
             }
         }
 
@@ -64,15 +94,15 @@ namespace Quick.MVVM.View
             this.ViewFileFolder = viewFileFolder;
         }
 
-        //改变主题
-        private void changeToCurrentTheme()
+        //重新加载视图
+        private void reloadView()
         {
             foreach (IViewModel viewModel in currentVisiableViewModelHashSet)
-                changeToCurrentTheme(viewModel);
+                reloadView(viewModel);
         }
 
         //改变主题
-        private void changeToCurrentTheme(IViewModel viewModel)
+        private void reloadView(IViewModel viewModel)
         {
             FrameworkElement preView = viewModel.View as FrameworkElement;
             if (preView == null)
@@ -85,7 +115,7 @@ namespace Quick.MVVM.View
             }
             catch (Exception ex)
             {
-                viewModel.View = String.Format("Failed to change theme to [{0}].", CurrentTheme);
+                viewModel.View = String.Format("Failed to reload view.CurrentTheme:[{0}];CurrentLanguage:[{1}].", CurrentTheme, CurrentLanguage);
                 throw ex;
             }
         }
@@ -137,22 +167,24 @@ namespace Quick.MVVM.View
 
                 if (element.IsVisible)
                 {
-                    if (GetViewCurrentTheme(element) == CurrentTheme)
+                    if (GetViewCurrentTheme(element) == CurrentTheme
+                        && GetViewCurrentLanguage(element) == CurrentLanguage)
                         currentVisiableViewModelHashSet.Add(viewModel);
                     else
-                        try { changeToCurrentTheme(viewModel); }
+                        try { reloadView(viewModel); }
                         catch { }
                 }
                 else
                     currentVisiableViewModelHashSet.Remove(viewModel);
             };
             SetViewCurrentTheme(element, CurrentTheme);
+            SetViewCurrentLanguage(element, CurrentLanguage);
             element.DataContext = viewModel;
             viewModel.View = element;
             //设置所有控件的默认错误模板
             if (DefaultErrorTemplate != null)
                 setDefaultErrorTemplate(element);
-            
+
             return element;
         }
 
@@ -218,12 +250,23 @@ namespace Quick.MVVM.View
                     break;
             }
 
+            //xaml文件内容
             String xamlContent = null;
+            //此xaml文件对应的语言文件内容
+            String xamlLanguageContent = null;
 
             //先尝试从View目录加载视图
             if (isViewXamlFileExists)
             {
                 xamlContent = File.ReadAllText(viewXamlFilePath);
+                String xamlLanguageFile = Path.Combine(
+                    Path.GetDirectoryName(viewXamlFilePath),
+                    "Language",
+                    CurrentLanguage,
+                    Path.GetFileNameWithoutExtension(viewXamlFilePath) + ".txt"
+                    );
+                if (File.Exists(xamlLanguageFile))
+                    xamlLanguageContent = File.ReadAllText(xamlLanguageFile);
             }
             //然后尝试从程序集资源中加载
             else
@@ -238,6 +281,15 @@ namespace Quick.MVVM.View
                         xamlContent = streamReader.ReadToEnd();
                         streamReader.Close();
                         resourceStream.Close();
+                        //语言文件
+                        resourceName = String.Format("{0}.View.{1}.{2}.{3}.txt", viewModelAssemblyName, "Language", CurrentLanguage, viewXamlFileName);
+                        resourceName = resourceName.Replace("-", "_");
+                        resourceStream = viewModelAssembly.GetManifestResourceStream(resourceName);
+                        if (resourceStream != null)
+                        {
+                            streamReader = new StreamReader(resourceStream);
+                            xamlLanguageContent = streamReader.ReadToEnd();
+                        }
                         break;
                     }
                 }
@@ -282,6 +334,38 @@ namespace Quick.MVVM.View
                     newResourceUri = String.Format("pack://application:,,,/{0};component/View/{1}", viewModelAssemblyName, resourceValue);
                 return String.Format("\"{0}\"", newResourceUri);
             });
+            //替换语言资源
+            if (xamlLanguageContent != null)
+            {
+                Dictionary<Int32, String> languageDict = new Dictionary<int, string>();
+
+                //(?'index'\d+)\s*=(?'value'.+).+
+                regex = new Regex(@"(?'index'\d+)\s*=(?'value'.+)");
+                MatchCollection languageMatchCollection = regex.Matches(xamlLanguageContent);
+                foreach (Match match in languageMatchCollection)
+                {
+                    var indexGroup = match.Groups["index"];
+                    var valueGroup = match.Groups["value"];
+
+                    if (!indexGroup.Success || !valueGroup.Success)
+                        continue;
+                    Int32 key = Int32.Parse(indexGroup.Value);
+                    String value = valueGroup.Value;
+                    if (languageDict.ContainsKey(key))
+                        languageDict.Remove(key);
+                    languageDict.Add(key, value);
+                }
+                //"(?'value'{}.*?)"
+                regex = new Regex("\"(?'value'{}.*?)\"");
+                Int32 languageIndex = 0;
+                xamlContent = regex.Replace(xamlContent, match =>
+                    {
+                        languageIndex++;
+                        if (languageDict.ContainsKey(languageIndex))
+                            return String.Format("\"{0}\"", languageDict[languageIndex]);
+                        return match.Value;
+                    });
+            }
             return xamlContent;
         }
 

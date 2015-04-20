@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              Height="400" Width="600">
     <i:Interaction.Behaviors>
-        <behavior:FrameworkElementWindowDataBehavior Title="Login"  WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" WindowState="Normal" ResizeMode="CanMinimize" />
+        <behavior:FrameworkElementWindowDataBehavior Title="{}Login"  WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" WindowState="Normal" ResizeMode="CanMinimize" />
     </i:Interaction.Behaviors>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -15,11 +15,11 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Demo" FontSize="36" />
-            <TextBlock Text="Quick.MVVM Demo" FontSize="18" />
+            <TextBlock Text="{}Demo" FontSize="36" />
+            <TextBlock Text="{}Quick.MVVM Demo" FontSize="18" />
         </StackPanel>
         <DockPanel Grid.Column="1">
-            <Button IsDefault="True" DockPanel.Dock="Bottom" Height="45" Content="Login" Margin="10" Command="{Binding Login}" />
+            <Button IsDefault="True" DockPanel.Dock="Bottom" Height="45" Content="{}Login" Margin="10" Command="{Binding Login}" />
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="160" />
@@ -28,7 +28,7 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Input your name:" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Text="{}Input your name:" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                 <TextBox Grid.Row="1" Margin="10">
                     <TextBox.Text>
@@ -36,8 +36,14 @@
                         </Binding>
                     </TextBox.Text>
                 </TextBox>
+                
+                <StackPanel Grid.Row="2"  Margin="5" Orientation="Horizontal">
+                    <Button  Margin="5" Content="{}Default" Command="{Binding ChangeTheme}" CommandParameter="Default" />
+                    <Button  Margin="5" Content="{}Blue" Command="{Binding ChangeTheme}" CommandParameter="Blue" />
+                    <Button  Margin="5" Content="{}en-US" Command="{Binding ChangeLanguage}" CommandParameter="en-US" />
+                    <Button  Margin="5" Content="{}zh-CN" Command="{Binding ChangeLanguage}" CommandParameter="zh-CN" />
+                </StackPanel>
 
-                <Button Grid.Row="2" Margin="10" Content="Change Theme" Command="{Binding ChangeTheme}" CommandParameter="Blue" />
                 <ContentControl Grid.Row="3">
                     <!--#include("path=Head")-->
                 </ContentControl>

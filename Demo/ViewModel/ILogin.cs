@@ -21,5 +21,9 @@ namespace Demo.ViewModel
         /// 改变主题
         /// </summary>
         ICommand ChangeTheme { get; }
+        /// <summary>
+        /// 改变语言
+        /// </summary>
+        ICommand ChangeLanguage { get; }
     }
 }

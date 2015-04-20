@@ -30,6 +30,10 @@ namespace Quick.MVVM
         /// </summary>
         String CurrentTheme { get; set; }
         /// <summary>
+        /// 获取或设置当前语言
+        /// </summary>
+        String CurrentLanguage { get; set; }
+        /// <summary>
         /// 注册视图模型与视图的关系
         /// </summary>
         /// <typeparam name="TViewModelType"></typeparam>
