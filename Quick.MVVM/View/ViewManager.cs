@@ -305,39 +305,7 @@ namespace Quick.MVVM.View
             //替换语言资源
             if (xamlLanguageContent != null)
             {
-                //转义符字典
-                Dictionary<String, String> xmlReplaceDict = new Dictionary<string, string>();
-                xmlReplaceDict.Add("&", "&amp;");
-                xmlReplaceDict.Add("<", "&lt;");
-                xmlReplaceDict.Add(">", "&gt;");
-                xmlReplaceDict.Add("\"", "&quot;");
-                xmlReplaceDict.Add("'", "&apos;");
-
-                Dictionary<Int32, String> languageDict = new Dictionary<int, string>();
-
-                //(?'index'\d+)\s*=(?'value'.+).+
-                regex = new Regex(@"(?'index'\d+)\s*=(?'value'.+)");
-                MatchCollection languageMatchCollection = regex.Matches(xamlLanguageContent);
-                foreach (Match match in languageMatchCollection)
-                {
-                    var indexGroup = match.Groups["index"];
-                    var valueGroup = match.Groups["value"];
-
-                    if (!indexGroup.Success || !valueGroup.Success)
-                        continue;
-                    Int32 key = Int32.Parse(indexGroup.Value);
-                    String value = valueGroup.Value;
-                    //替换需要转义的字符
-                    if (value.Contains("{") && !value.StartsWith("{}"))
-                        value = "{}" + value;
-                    foreach (String replaceKey in xmlReplaceDict.Keys)
-                        if (value.Contains(replaceKey))
-                            value = value.Replace(replaceKey, xmlReplaceDict[replaceKey]);
-
-                    if (languageDict.ContainsKey(key))
-                        languageDict.Remove(key);
-                    languageDict.Add(key, value);
-                }
+                Dictionary<Int32, String> languageDict = ResourceUtils.GetLanguageResourceDictionary(xamlLanguageContent);
                 //"(?'value'{}.*?)"
                 regex = new Regex("\"(?'value'{}.*?)\"");
                 Int32 languageIndex = 0;

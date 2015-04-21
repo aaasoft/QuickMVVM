@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace Demo.ViewModel.Impl
 {
-    public class Login_Impl : ViewModelBase, ILogin
+    public class Login_Impl : QM_ViewModelBase, ILogin
     {
         private String _UserName;
         public string UserName

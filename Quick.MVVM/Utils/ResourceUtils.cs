@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Quick.MVVM.Utils
 {
@@ -50,6 +51,49 @@ namespace Quick.MVVM.Utils
                 }
             }
             return fileContent;
+        }
+
+        /// <summary>
+        /// 获取语言资源字典
+        /// </summary>
+        /// <param name="languageContent"></param>
+        /// <returns></returns>
+        public static Dictionary<Int32, String> GetLanguageResourceDictionary(String languageContent)
+        {
+            //转义符字典
+            Dictionary<String, String> xmlReplaceDict = new Dictionary<string, string>();
+            xmlReplaceDict.Add("&", "&amp;");
+            xmlReplaceDict.Add("<", "&lt;");
+            xmlReplaceDict.Add(">", "&gt;");
+            xmlReplaceDict.Add("\"", "&quot;");
+            xmlReplaceDict.Add("'", "&apos;");
+
+            Dictionary<Int32, String> languageDict = new Dictionary<int, string>();
+
+            //(?'index'\d+)\s*=(?'value'.+).+
+            Regex regex = new Regex(@"(?'index'\d+)\s*=(?'value'.+)");
+            MatchCollection languageMatchCollection = regex.Matches(languageContent);
+            foreach (Match match in languageMatchCollection)
+            {
+                var indexGroup = match.Groups["index"];
+                var valueGroup = match.Groups["value"];
+
+                if (!indexGroup.Success || !valueGroup.Success)
+                    continue;
+                Int32 key = Int32.Parse(indexGroup.Value);
+                String value = valueGroup.Value;
+                //替换需要转义的字符
+                if (value.Contains("{") && !value.StartsWith("{}"))
+                    value = "{}" + value;
+                foreach (String replaceKey in xmlReplaceDict.Keys)
+                    if (value.Contains(replaceKey))
+                        value = value.Replace(replaceKey, xmlReplaceDict[replaceKey]);
+
+                if (languageDict.ContainsKey(key))
+                    languageDict.Remove(key);
+                languageDict.Add(key, value);
+            }
+            return languageDict;
         }
     }
 }

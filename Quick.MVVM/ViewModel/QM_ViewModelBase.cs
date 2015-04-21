@@ -10,7 +10,7 @@ using System.Windows.Input;
 
 namespace Quick.MVVM.ViewModel
 {
-    public abstract class ViewModelBase : NotifyPropertyChangedModelBase, IViewModel
+    public abstract class QM_ViewModelBase : NotifyPropertyChangedModelBase, IViewModel
     {
         private Object _View;
         /// <summary>

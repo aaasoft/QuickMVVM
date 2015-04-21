@@ -59,7 +59,7 @@
     <Compile Include="ViewModel\DelegateNavigator.cs" />
     <Compile Include="ViewModel\INavigator.cs" />
     <Compile Include="ViewModel\IViewModel.cs" />
-    <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="ViewModel\QM_ViewModelBase.cs" />
     <Compile Include="ViewModel\ViewModelManager.cs" />
     <Compile Include="View\Behaviors\FrameworkElementWindowDataBehavior.cs" />
     <Compile Include="View\ViewManager.cs" />
