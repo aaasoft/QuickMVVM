@@ -220,6 +220,49 @@ namespace Quick.MVVM.View
             }
         }
 
+        private String getTextResourceFileContent(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        {
+            //文件是否存在
+            Boolean isFileExists = false;
+            String filePath = null;
+            foreach (String fileName in fileNameList)
+            {
+                filePath = Path.Combine(baseFolder, fileName);
+                isFileExists = File.Exists(filePath);
+                if (isFileExists)
+                    break;
+            }
+
+            String fileContent = null;
+
+            //先尝试从目录加载文件
+            if (isFileExists)
+            {
+                fileContent = File.ReadAllText(filePath);
+            }
+            //然后尝试从程序集资源中加载
+            else
+            {
+                foreach (String fileName in fileNameList)
+                {
+                    //"{0}.View.{1}"
+                    String resourceName = String.Format(fullFileNameTemplate, templateParams);
+                    resourceName = resourceName.Replace("[fileName]", fileName);
+                    resourceName = resourceName.Replace("-", "_");
+                    Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
+                    if (resourceStream != null)
+                    {
+                        StreamReader streamReader = new StreamReader(resourceStream);
+                        fileContent = streamReader.ReadToEnd();
+                        streamReader.Close();
+                        resourceStream.Close();
+                        break;
+                    }
+                }
+            }
+            return fileContent;
+        }
+
         private String getXamlContent(String viewModelTypeFullName, Assembly viewModelAssembly)
         {
             //视图模型接口类所在的程序集名称
@@ -227,73 +270,41 @@ namespace Quick.MVVM.View
             String viewBaseFolder = Path.Combine(ViewFileFolder, CurrentTheme, viewModelAssemblyName);
 
             //要搜索的可能的xaml文件名称
-            List<String> viewXamlFileNameList = new List<string>()
-            {
-                viewModelTypeFullName
-            };
+            List<String> viewXamlFileNameList = new List<string>() { viewModelTypeFullName + ".xaml" };
+            //要搜索的可能的xaml的语言文件名称
+            List<String> viewXamlLanguageFileNameList = new List<string>() { viewModelTypeFullName + ".txt" };
+
             if (viewModelTypeFullName.StartsWith(viewModelAssemblyName + "."))
             {
                 String shortName = viewModelTypeFullName.Substring((viewModelAssemblyName + ".").Length);
-                viewXamlFileNameList.Add(shortName);
-                if (shortName.StartsWith("ViewModel."))
-                    viewXamlFileNameList.Add(shortName.Substring("ViewModel.".Length));
-            }
+                viewXamlFileNameList.Add(shortName + ".xaml");
+                viewXamlLanguageFileNameList.Add(shortName + ".txt");
 
-            //视图的xaml文件是否存在
-            Boolean isViewXamlFileExists = false;
-            String viewXamlFilePath = null;
-            foreach (String viewXamlFileName in viewXamlFileNameList)
-            {
-                viewXamlFilePath = Path.Combine(viewBaseFolder, viewXamlFileName + ".xaml");
-                isViewXamlFileExists = File.Exists(viewXamlFilePath);
-                if (isViewXamlFileExists)
-                    break;
+                if (shortName.StartsWith("ViewModel."))
+                {
+                    viewXamlFileNameList.Add(shortName.Substring("ViewModel.".Length) + ".xaml");
+                    viewXamlLanguageFileNameList.Add(shortName.Substring("ViewModel.".Length) + ".txt");
+                }
             }
 
             //xaml文件内容
-            String xamlContent = null;
-            //此xaml文件对应的语言文件内容
-            String xamlLanguageContent = null;
+            String xamlContent = getTextResourceFileContent(
+                viewXamlFileNameList,
+                viewModelAssembly,
+                viewBaseFolder,
+                "{0}.View.[fileName]",
+                viewModelAssemblyName);
+            if (xamlContent == null)
+                return null;
 
-            //先尝试从View目录加载视图
-            if (isViewXamlFileExists)
-            {
-                xamlContent = File.ReadAllText(viewXamlFilePath);
-                String xamlLanguageFile = Path.Combine(
-                    Path.GetDirectoryName(viewXamlFilePath),
-                    "Language",
-                    CurrentLanguage,
-                    Path.GetFileNameWithoutExtension(viewXamlFilePath) + ".txt"
-                    );
-                if (File.Exists(xamlLanguageFile))
-                    xamlLanguageContent = File.ReadAllText(xamlLanguageFile);
-            }
-            //然后尝试从程序集资源中加载
-            else
-            {
-                foreach (String viewXamlFileName in viewXamlFileNameList)
-                {
-                    String resourceName = String.Format("{0}.View.{1}.xaml", viewModelAssemblyName, viewXamlFileName);
-                    Stream resourceStream = viewModelAssembly.GetManifestResourceStream(resourceName);
-                    if (resourceStream != null)
-                    {
-                        StreamReader streamReader = new StreamReader(resourceStream);
-                        xamlContent = streamReader.ReadToEnd();
-                        streamReader.Close();
-                        resourceStream.Close();
-                        //语言文件
-                        resourceName = String.Format("{0}.View.{1}.{2}.{3}.txt", viewModelAssemblyName, "Language", CurrentLanguage, viewXamlFileName);
-                        resourceName = resourceName.Replace("-", "_");
-                        resourceStream = viewModelAssembly.GetManifestResourceStream(resourceName);
-                        if (resourceStream != null)
-                        {
-                            streamReader = new StreamReader(resourceStream);
-                            xamlLanguageContent = streamReader.ReadToEnd();
-                        }
-                        break;
-                    }
-                }
-            }
+            //此xaml文件对应的语言文件内容
+            String xamlLanguageContent = getTextResourceFileContent(
+                    viewXamlLanguageFileNameList,
+                    viewModelAssembly,
+                    Path.Combine(viewBaseFolder,"Language",CurrentLanguage),
+                    "{0}.View.{1}.{2}.[fileName]",
+                    viewModelAssemblyName, "Language", CurrentLanguage
+                );
             if (xamlContent == null)
                 return null;
 
