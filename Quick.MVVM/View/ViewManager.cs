@@ -220,49 +220,6 @@ namespace Quick.MVVM.View
             }
         }
 
-        private String getTextResourceFileContent(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
-        {
-            //文件是否存在
-            Boolean isFileExists = false;
-            String filePath = null;
-            foreach (String fileName in fileNameList)
-            {
-                filePath = Path.Combine(baseFolder, fileName);
-                isFileExists = File.Exists(filePath);
-                if (isFileExists)
-                    break;
-            }
-
-            String fileContent = null;
-
-            //先尝试从目录加载文件
-            if (isFileExists)
-            {
-                fileContent = File.ReadAllText(filePath);
-            }
-            //然后尝试从程序集资源中加载
-            else
-            {
-                foreach (String fileName in fileNameList)
-                {
-                    //"{0}.View.{1}"
-                    String resourceName = String.Format(fullFileNameTemplate, templateParams);
-                    resourceName = resourceName.Replace("[fileName]", fileName);
-                    resourceName = resourceName.Replace("-", "_");
-                    Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
-                    if (resourceStream != null)
-                    {
-                        StreamReader streamReader = new StreamReader(resourceStream);
-                        fileContent = streamReader.ReadToEnd();
-                        streamReader.Close();
-                        resourceStream.Close();
-                        break;
-                    }
-                }
-            }
-            return fileContent;
-        }
-
         private String getXamlContent(String viewModelTypeFullName, Assembly viewModelAssembly)
         {
             //视图模型接口类所在的程序集名称
@@ -288,7 +245,7 @@ namespace Quick.MVVM.View
             }
 
             //xaml文件内容
-            String xamlContent = getTextResourceFileContent(
+            String xamlContent = ResourceUtils.GetResourceText(
                 viewXamlFileNameList,
                 viewModelAssembly,
                 viewBaseFolder,
@@ -298,7 +255,7 @@ namespace Quick.MVVM.View
                 return null;
 
             //此xaml文件对应的语言文件内容
-            String xamlLanguageContent = getTextResourceFileContent(
+            String xamlLanguageContent = ResourceUtils.GetResourceText(
                     viewXamlLanguageFileNameList,
                     viewModelAssembly,
                     Path.Combine(viewBaseFolder,"Language",CurrentLanguage),
