@@ -55,6 +55,14 @@ namespace Quick.MVVM.View
 
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
         private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
+        /// <summary>
+        /// 主题改变时事件
+        /// </summary>
+        public event EventHandler ThemeChanged;
+        /// <summary>
+        /// 语言改变时事件
+        /// </summary>
+        public event EventHandler LanguageChanged;
 
         /// <summary>
         /// 视图模型管理器
@@ -73,6 +81,7 @@ namespace Quick.MVVM.View
             set
             {
                 currentTheme = value;
+                fireEvent(ThemeChanged);
                 reloadView();
             }
         }
@@ -85,8 +94,15 @@ namespace Quick.MVVM.View
             set
             {
                 currentLanguage = value;
+                fireEvent(LanguageChanged);
                 reloadView();
             }
+        }
+
+        private void fireEvent(EventHandler eventHandler)
+        {
+            if (eventHandler != null)
+                eventHandler.Invoke(this, EventArgs.Empty);
         }
 
         public ViewManager(String viewFileFolder)

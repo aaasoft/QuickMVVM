@@ -34,6 +34,14 @@ namespace Quick.MVVM
         /// </summary>
         String CurrentLanguage { get; set; }
         /// <summary>
+        /// 主题改变时事件
+        /// </summary>
+        event EventHandler ThemeChanged;
+        /// <summary>
+        /// 语言改变时事件
+        /// </summary>
+        event EventHandler LanguageChanged;
+        /// <summary>
         /// 注册视图模型与视图的关系
         /// </summary>
         /// <typeparam name="TViewModelType"></typeparam>
