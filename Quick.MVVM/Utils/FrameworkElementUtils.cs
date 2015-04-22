@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Quick.MVVM.Utils
 {
@@ -16,11 +17,22 @@ namespace Quick.MVVM.Utils
         /// <param name="target"></param>
         public static void Exchange(FrameworkElement source, FrameworkElement target)
         {
-            //source的父控件
-            Object sourceParent = source.Parent;
+            Window win = Window.GetWindow(source);
+            if (win != null)
+            {
+                if (win.Content == source)
+                {
+                    win.Content = null;
+                    win.Content = target;
+                    return;
+                }
+            }
 
+            //source的父控件
+            Object sourceParent = LogicalTreeHelper.GetParent(source);
             if (sourceParent == null)
             {
+                
                 if (source is ContentControl)
                 {
                     ContentControl elementControl = (ContentControl)source;
