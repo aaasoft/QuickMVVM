@@ -7,3 +7,5 @@
 /Demo/bin
 /Demo/obj
 *.suo
+/LanguageResourceMaker/bin
+/LanguageResourceMaker/obj
