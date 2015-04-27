@@ -80,7 +80,13 @@ namespace LanguageResourceMaker
             }
 
             tabControl1.TabPages.Remove(tabPage1);
-            MainEngine engine = new MainEngine(translator, log => pushLog(log), log => updateLog(log));
+            MainEngineConfig config = new MainEngineConfig()
+            {
+                Translator = translator,
+                PushLogAction = pushLog,
+                UpdateLogAction = updateLog
+            };
+            MainEngine engine = new MainEngine(config);
             engine.Start();
         }
 

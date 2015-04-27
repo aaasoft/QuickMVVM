@@ -11,15 +11,11 @@ namespace LanguageResourceMaker.Core
 {
     public class MainEngine
     {
-        private Action<String> pushLogAction;
-        private Action<String> updateLogAction;
-        private ITranslator translator;
+        private MainEngineConfig config;
 
-        public MainEngine(ITranslator translator,Action<String> pushLogAction, Action<String> updateLogAction)
+        public MainEngine(MainEngineConfig config)
         {
-            this.translator = translator;
-            this.pushLogAction = pushLogAction;
-            this.updateLogAction = updateLogAction;
+            this.config = config;
         }
 
         public void Start()
@@ -42,19 +38,19 @@ namespace LanguageResourceMaker.Core
 
         private void _Start()
         {
-            pushLogAction("开始");
+            config.PushLogAction("开始");
             //所有的语言资源字典，翻译时用
             Dictionary<String, List<String>> allLanguageResourceDict = new Dictionary<string, List<string>>();
 
             DirectoryInfo di = new DirectoryInfo(Program.InputFolder);
             var projectFiles = di.GetFiles("*.csproj", SearchOption.AllDirectories);
 
-            pushLogAction("搜索中...");
+            config.PushLogAction("搜索中...");
             for (int i = 0; i < projectFiles.Length; i++)
             {
                 var projectFile = projectFiles[i];
                 DirectoryInfo projectFolder = projectFile.Directory;
-                updateLogAction(String.Format("正在处理第[{0}/{1}]个项目[{2}]", i + 1, projectFiles.Length, projectFolder.Name));
+                config.UpdateLogAction(String.Format("正在处理第[{0}/{1}]个项目[{2}]", i + 1, projectFiles.Length, projectFolder.Name));
                 //处理视图文件
                 DirectoryInfo viewDi = new DirectoryInfo(Path.Combine(projectFolder.FullName, "View"));
                 if (viewDi.Exists)
@@ -116,8 +112,8 @@ namespace LanguageResourceMaker.Core
 
             if (Program.AutoTranslate && Program.TranslateTarget != null && Program.TranslateTarget.Length > 0)
             {
-                pushLogAction("开始翻译");
-                pushLogAction("翻译中。。。");
+                config.PushLogAction("开始翻译");
+                config.PushLogAction("翻译中。。。");
                 foreach (String language in Program.TranslateTarget)
                 {
                     String[] allLanguageResourceDictKeys = allLanguageResourceDict.Keys.ToArray();
@@ -131,15 +127,15 @@ namespace LanguageResourceMaker.Core
 
                         foreach (String text in textList)
                         {
-                            updateLogAction(String.Format("正在翻译第[{0}/{1}]个语言文件[{2}]", j + 1, allLanguageResourceDictKeys.Length, newFullFileName));
+                            config.UpdateLogAction(String.Format("正在翻译第[{0}/{1}]个语言文件[{2}]", j + 1, allLanguageResourceDictKeys.Length, newFullFileName));
                             String newText = null;
                             do
                             {
-                                newText = translator.Translate(Thread.CurrentThread.CurrentCulture.Name, language, text);
+                                newText = config.Translator.Translate(Thread.CurrentThread.CurrentCulture.Name, language, text);
                                 if (newText == null)
                                 {
                                     Thread.Sleep(5 * 1000);
-                                    pushLogAction(String.Format("翻译[{0}]中的[{1}]为[{2}]时失败，5秒后重试！", abstractFileName, text, language));
+                                    config.PushLogAction(String.Format("翻译[{0}]中的[{1}]为[{2}]时失败，5秒后重试！", abstractFileName, text, language));
                                 }
                             } while (newText == null);
                             newList.Add(newText);
@@ -151,7 +147,7 @@ namespace LanguageResourceMaker.Core
                     }
                 }
             }
-            pushLogAction("处理完成");
+            config.PushLogAction("处理完成");
         }
     }
 }

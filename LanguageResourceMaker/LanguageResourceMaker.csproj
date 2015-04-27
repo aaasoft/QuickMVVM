@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\MainEngine.cs" />
+    <Compile Include="Core\MainEngineConfig.cs" />
     <Compile Include="ParameterForm.cs">
       <SubType>Form</SubType>
     </Compile>
