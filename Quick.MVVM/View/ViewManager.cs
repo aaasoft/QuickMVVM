@@ -59,6 +59,9 @@ namespace Quick.MVVM.View
 
         private Dictionary<Type, Type> viewModelTypeViewTypeDict = new Dictionary<Type, Type>();
         private HashSet<IViewModel> currentVisiableViewModelHashSet = new HashSet<IViewModel>();
+        //转义符字典
+        Dictionary<String, String> xmlReplaceDict;
+
         /// <summary>
         /// 主题改变时事件
         /// </summary>
@@ -116,6 +119,13 @@ namespace Quick.MVVM.View
         public ViewManager(String viewFileFolder)
         {
             this.ViewFileFolder = viewFileFolder;
+            //XML转义符
+            xmlReplaceDict = new Dictionary<string, string>();
+            xmlReplaceDict.Add("&", "&amp;");
+            xmlReplaceDict.Add("<", "&lt;");
+            xmlReplaceDict.Add(">", "&gt;");
+            xmlReplaceDict.Add("\"", "&quot;");
+            xmlReplaceDict.Add("'", "&apos;");
         }
 
         //重新加载视图
@@ -427,7 +437,13 @@ namespace Quick.MVVM.View
                     {
                         languageIndex++;
                         if (languageDict.ContainsKey(languageIndex))
-                            return String.Format("\"{0}\"", languageDict[languageIndex]);
+                        {
+                            String value = languageDict[languageIndex];
+                            foreach (String replaceKey in xmlReplaceDict.Keys)
+                                if (value.Contains(replaceKey))
+                                    value = value.Replace(replaceKey, xmlReplaceDict[replaceKey]);
+                            return String.Format("\"{0}\"", value);
+                        }
                         return match.Value;
                     });
             }

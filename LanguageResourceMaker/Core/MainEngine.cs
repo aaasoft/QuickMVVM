@@ -134,8 +134,13 @@ namespace LanguageResourceMaker.Core
                                 newText = config.Translator.Translate(Thread.CurrentThread.CurrentCulture.Name, language, text);
                                 if (newText == null)
                                 {
-                                    Thread.Sleep(5 * 1000);
-                                    config.PushLogAction(String.Format("翻译[{0}]中的[{1}]为[{2}]时失败，5秒后重试！", abstractFileName, text, language));
+                                    config.UpdateLogAction(String.Format("翻译[{0}]中的[{1}]为[{2}]时失败！", abstractFileName, text, language));
+                                    config.PushLogAction("");
+                                    for (int s = 5; s > 0; s--)
+                                    {
+                                        config.UpdateLogAction(String.Format("{0}秒后重试...", s));
+                                        Thread.Sleep(1000);
+                                    }
                                 }
                             } while (newText == null);
                             newList.Add(newText);

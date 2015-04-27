@@ -60,17 +60,9 @@ namespace Quick.MVVM.Utils
         /// <returns></returns>
         public static Dictionary<Int32, String> GetLanguageResourceDictionary(String languageContent)
         {
-            //转义符字典
-            Dictionary<String, String> xmlReplaceDict = new Dictionary<string, string>();
-            xmlReplaceDict.Add("&", "&amp;");
-            xmlReplaceDict.Add("<", "&lt;");
-            xmlReplaceDict.Add(">", "&gt;");
-            xmlReplaceDict.Add("\"", "&quot;");
-            xmlReplaceDict.Add("'", "&apos;");
-
             Dictionary<Int32, String> languageDict = new Dictionary<int, string>();
 
-            //(?'index'\d+)\s*=(?'value'.+).+
+            //(?'index'\d+)\s*=(?'value'.+)
             Regex regex = new Regex(@"(?'index'\d+)\s*=(?'value'.+)");
             MatchCollection languageMatchCollection = regex.Matches(languageContent);
             foreach (Match match in languageMatchCollection)
@@ -82,13 +74,11 @@ namespace Quick.MVVM.Utils
                     continue;
                 Int32 key = Int32.Parse(indexGroup.Value);
                 String value = valueGroup.Value;
+                if (value.EndsWith("\r"))
+                    value = value.Substring(0, value.Length - 1);
                 //替换需要转义的字符
                 if (value.Contains("{") && !value.StartsWith("{}"))
                     value = "{}" + value;
-                foreach (String replaceKey in xmlReplaceDict.Keys)
-                    if (value.Contains(replaceKey))
-                        value = value.Replace(replaceKey, xmlReplaceDict[replaceKey]);
-
                 if (languageDict.ContainsKey(key))
                     languageDict.Remove(key);
                 languageDict.Add(key, value);
