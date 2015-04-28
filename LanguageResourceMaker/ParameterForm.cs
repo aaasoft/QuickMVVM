@@ -66,26 +66,28 @@ namespace LanguageResourceMaker
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            Program.InputFolder = txtInputFolder.Text.Trim();
-            Program.OutputFolder = txtOutputFolder.Text.Trim();
-            Program.AutoTranslate = cbAutoTranslate.Checked;
-            if (Program.AutoTranslate)
+            MainEngineConfig config = new MainEngineConfig()
+            {
+                InputFolder = txtInputFolder.Text.Trim(),
+                OutputFolder = txtOutputFolder.Text.Trim(),
+                ExtractLanguageResource= cbExtractLanguageResource.Checked,
+                AutoTranslate = cbAutoTranslate.Checked,
+                AllowModifyXamlFile = cbAllowModifyXamlFile.Checked,
+                Translator = translator,
+                PushLogAction = pushLog,
+                UpdateLogAction = updateLog
+            };
+            if (config.AutoTranslate)
             {
                 List<String> list = new List<string>();
                 foreach (ListViewItem lvi in lvLanguages.CheckedItems)
                 {
                     list.Add(lvi.Tag.ToString());
                 }
-                Program.TranslateTarget = list.ToArray();
+                config.TranslateTarget = list.ToArray();
             }
 
             tabControl1.TabPages.Remove(tabPage1);
-            MainEngineConfig config = new MainEngineConfig()
-            {
-                Translator = translator,
-                PushLogAction = pushLog,
-                UpdateLogAction = updateLog
-            };
             MainEngine engine = new MainEngine(config);
             engine.Start();
         }

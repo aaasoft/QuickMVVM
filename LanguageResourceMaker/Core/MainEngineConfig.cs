@@ -11,6 +11,18 @@ namespace LanguageResourceMaker.Core
     /// </summary>
     public class MainEngineConfig
     {
+        public String InputFolder { get; set; }
+        public String OutputFolder { get; set; }
+        public Boolean AutoTranslate { get; set; }
+        public String[] TranslateTarget { get; set; }
+        /// <summary>
+        /// 提取语言资源
+        /// </summary>
+        public Boolean ExtractLanguageResource { get; set; }
+        /// <summary>
+        /// 是否允许修改XAML文件
+        /// </summary>
+        public Boolean AllowModifyXamlFile { get; set; }
         /// <summary>
         /// 翻译器
         /// </summary>

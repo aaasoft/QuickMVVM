@@ -1,4 +1,6 @@
-﻿using LanguageResourceMaker.Translator;
+﻿using LanguageResourceMaker.Core.FileHandlers;
+using LanguageResourceMaker.Translator;
+using LanguageResourceMaker.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,10 +14,13 @@ namespace LanguageResourceMaker.Core
     public class MainEngine
     {
         private MainEngineConfig config;
+        Dictionary<String, IFileHandler> fileHandlerDict = new Dictionary<string, IFileHandler>();
 
         public MainEngine(MainEngineConfig config)
         {
             this.config = config;
+            fileHandlerDict.Add("*.xaml", new XamlFileHandler(config) { OutputLanguageFileAction = outputLanguageFile});
+            fileHandlerDict.Add("*.cs", new CsFileHandler() { OutputLanguageFileAction = outputLanguageFile });
         }
 
         public void Start()
@@ -26,14 +31,24 @@ namespace LanguageResourceMaker.Core
                 });
         }
 
-        private String getToWriteLanguageText(List<String> textList)
+        private void outputLanguageFile(String outputFileNameWithoutExtension, DirectoryInfo projectFolder, List<String> textList, String language)
         {
-            StringBuilder sb = new StringBuilder();
-            for (int j = 0; j < textList.Count; j++)
-            {
-                sb.AppendLine(String.Format("{0}={1}", j + 1, textList[j]));
-            }
-            return sb.ToString();
+            //输出到语言文件
+            String outputFolder = null;
+            if (String.IsNullOrEmpty(config.OutputFolder))
+                outputFolder = projectFolder.FullName;
+            else
+                outputFolder = config.OutputFolder;
+
+            String abstractOutputFolder = Path.Combine(outputFolder, projectFolder.Name, "Language", "{0}");
+            String abstractOutputFileName = outputFileNameWithoutExtension + ".txt";
+
+            //写默认语言资源到文件
+            outputFolder = String.Format(abstractOutputFolder, language);
+            if (!Directory.Exists(outputFolder))
+                Directory.CreateDirectory(outputFolder);
+            String languageFileName = Path.Combine(outputFolder, abstractOutputFileName);
+            File.WriteAllText(languageFileName, LanguageUtils.GetToWriteLanguageText(textList), Encoding.UTF8);
         }
 
         private void _Start()
@@ -42,7 +57,7 @@ namespace LanguageResourceMaker.Core
             //所有的语言资源字典，翻译时用
             Dictionary<String, List<String>> allLanguageResourceDict = new Dictionary<string, List<string>>();
 
-            DirectoryInfo di = new DirectoryInfo(Program.InputFolder);
+            DirectoryInfo di = new DirectoryInfo(config.InputFolder);
             var projectFiles = di.GetFiles("*.csproj", SearchOption.AllDirectories);
 
             config.PushLogAction("搜索中...");
@@ -51,70 +66,25 @@ namespace LanguageResourceMaker.Core
                 var projectFile = projectFiles[i];
                 DirectoryInfo projectFolder = projectFile.Directory;
                 config.UpdateLogAction(String.Format("正在处理第[{0}/{1}]个项目[{2}]", i + 1, projectFiles.Length, projectFolder.Name));
-                //处理视图文件
-                DirectoryInfo viewDi = new DirectoryInfo(Path.Combine(projectFolder.FullName, "View"));
-                if (viewDi.Exists)
+                if (config.ExtractLanguageResource)
                 {
-                    foreach (var viewFile in viewDi.GetFiles("*.xaml"))
+                    foreach (String searchPattern in fileHandlerDict.Keys)
                     {
-                        List<String> textList = new List<string>();
-
-                        String xamlContent = File.ReadAllText(viewFile.FullName);
-                        Boolean isContentChanged = false;
-
-                        //"(?'value'[^"]*?[\u4E00-\u9FA5]+[^"]*?)"
-                        Regex regex = new Regex("\"(?'value'[^\"]*?[\u4E00-\u9FA5]+[^\"]*?)\"");
-                        xamlContent = regex.Replace(xamlContent, match =>
-                            {
-                                var valueGroup = match.Groups["value"];
-                                if (!valueGroup.Success)
-                                    return match.Value;
-                                String value = valueGroup.Value;
-                                if (value.Contains("<!--"))
-                                    return match.Value;
-
-                                if (value.StartsWith("{}"))
-                                    value = value.Substring(2);
-                                else
-                                    isContentChanged = true;
-                                textList.Add(value);
-                                return String.Format("\"{0}\"", "{}" + value);
-                            });
-                        if (textList.Count == 0)
+                        IFileHandler fileHandler = fileHandlerDict[searchPattern];
+                        DirectoryInfo fileFolder = new DirectoryInfo(Path.Combine(projectFolder.FullName, fileHandler.GetFolderPath()));
+                        if (!fileFolder.Exists)
                             continue;
-
-
-                        if (isContentChanged)
-                            File.WriteAllText(viewFile.FullName, xamlContent, Encoding.UTF8);
-
-                        //输出到语言文件
-                        String outputFolder = null;
-                        if (String.IsNullOrEmpty(Program.OutputFolder))
-                            outputFolder = projectFolder.FullName;
-                        else
-                            outputFolder = Program.OutputFolder;
-
-                        String abstractOutputFolder = Path.Combine(outputFolder, projectFolder.Name, "Language", "{0}");
-                        String abstractOutputFileName = Path.GetFileNameWithoutExtension(viewFile.Name) + ".txt";
-
-                        allLanguageResourceDict.Add(Path.Combine(abstractOutputFolder, abstractOutputFileName), textList);
-                        //写默认语言资源到文件
-                        outputFolder = String.Format(abstractOutputFolder, Thread.CurrentThread.CurrentCulture.Name);
-                        if (!Directory.Exists(outputFolder))
-                            Directory.CreateDirectory(outputFolder);
-                        String languageFileName = Path.Combine(outputFolder, abstractOutputFileName);
-                        File.WriteAllText(languageFileName, getToWriteLanguageText(textList), Encoding.UTF8);
+                        foreach (var viewFile in fileFolder.GetFiles(searchPattern, SearchOption.AllDirectories))
+                            fileHandler.Handle(viewFile, projectFolder);
                     }
                 }
-                //处理cs文件
-
             }
 
-            if (Program.AutoTranslate && Program.TranslateTarget != null && Program.TranslateTarget.Length > 0)
+            if (config.AutoTranslate && config.TranslateTarget != null && config.TranslateTarget.Length > 0)
             {
                 config.PushLogAction("开始翻译");
                 config.PushLogAction("翻译中。。。");
-                foreach (String language in Program.TranslateTarget)
+                foreach (String language in config.TranslateTarget)
                 {
                     String[] allLanguageResourceDictKeys = allLanguageResourceDict.Keys.ToArray();
                     for (int j = 0; j < allLanguageResourceDictKeys.Length; j++)
@@ -148,7 +118,7 @@ namespace LanguageResourceMaker.Core
                         String newFullFileFolderName = Path.GetDirectoryName(newFullFileName);
                         if (!Directory.Exists(newFullFileFolderName))
                             Directory.CreateDirectory(newFullFileFolderName);
-                        File.WriteAllText(newFullFileName, getToWriteLanguageText(newList), Encoding.UTF8);
+                        File.WriteAllText(newFullFileName, LanguageUtils.GetToWriteLanguageText(newList), Encoding.UTF8);
                     }
                 }
             }

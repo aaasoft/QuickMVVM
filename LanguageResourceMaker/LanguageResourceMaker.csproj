@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>..\Libs\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp">
+      <HintPath>..\Libs\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libs\Newtonsoft.Json.dll</HintPath>
@@ -48,6 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\FileHandlers\AbstractFileHandler.cs" />
+    <Compile Include="Core\FileHandlers\CsFileHandler.cs" />
+    <Compile Include="Core\FileHandlers\XamlFileHandler.cs" />
+    <Compile Include="Core\IFileHandler.cs" />
     <Compile Include="Core\MainEngine.cs" />
     <Compile Include="Core\MainEngineConfig.cs" />
     <Compile Include="ParameterForm.cs">
@@ -60,6 +70,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Translator\BaiduTranslator.cs" />
     <Compile Include="Translator\ITranslator.cs" />
+    <Compile Include="Utils\LanguageUtils.cs" />
     <EmbeddedResource Include="ParameterForm.resx">
       <DependentUpon>ParameterForm.cs</DependentUpon>
     </EmbeddedResource>

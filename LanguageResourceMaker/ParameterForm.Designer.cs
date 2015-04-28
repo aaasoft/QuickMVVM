@@ -40,8 +40,10 @@
             this.chLanguage = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.cbAllowModifyXamlFile = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.txtLog = new System.Windows.Forms.TextBox();
+            this.cbExtractLanguageResource = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -108,7 +110,7 @@
             // cbAutoTranslate
             // 
             this.cbAutoTranslate.AutoSize = true;
-            this.cbAutoTranslate.Location = new System.Drawing.Point(6, 84);
+            this.cbAutoTranslate.Location = new System.Drawing.Point(6, 134);
             this.cbAutoTranslate.Name = "cbAutoTranslate";
             this.cbAutoTranslate.Size = new System.Drawing.Size(72, 16);
             this.cbAutoTranslate.TabIndex = 5;
@@ -136,9 +138,9 @@
             this.lvLanguages.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.chLanguage});
             this.lvLanguages.Enabled = false;
-            this.lvLanguages.Location = new System.Drawing.Point(6, 106);
+            this.lvLanguages.Location = new System.Drawing.Point(6, 156);
             this.lvLanguages.Name = "lvLanguages";
-            this.lvLanguages.Size = new System.Drawing.Size(434, 225);
+            this.lvLanguages.Size = new System.Drawing.Size(434, 175);
             this.lvLanguages.TabIndex = 6;
             this.lvLanguages.UseCompatibleStateImageBehavior = false;
             this.lvLanguages.View = System.Windows.Forms.View.Details;
@@ -161,6 +163,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.cbExtractLanguageResource);
+            this.tabPage1.Controls.Add(this.cbAllowModifyXamlFile);
             this.tabPage1.Controls.Add(this.label1);
             this.tabPage1.Controls.Add(this.lvLanguages);
             this.tabPage1.Controls.Add(this.txtInputFolder);
@@ -178,13 +182,23 @@
             this.tabPage1.Text = "配置";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // cbAllowModifyXamlFile
+            // 
+            this.cbAllowModifyXamlFile.AutoSize = true;
+            this.cbAllowModifyXamlFile.Location = new System.Drawing.Point(113, 84);
+            this.cbAllowModifyXamlFile.Name = "cbAllowModifyXamlFile";
+            this.cbAllowModifyXamlFile.Size = new System.Drawing.Size(120, 16);
+            this.cbAllowModifyXamlFile.TabIndex = 1001;
+            this.cbAllowModifyXamlFile.Text = "允许修改xaml文件";
+            this.cbAllowModifyXamlFile.UseVisualStyleBackColor = true;
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.txtLog);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(330, 368);
+            this.tabPage2.Size = new System.Drawing.Size(446, 368);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "执行";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -197,8 +211,18 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(324, 362);
+            this.txtLog.Size = new System.Drawing.Size(440, 362);
             this.txtLog.TabIndex = 0;
+            // 
+            // cbExtractLanguageResource
+            // 
+            this.cbExtractLanguageResource.AutoSize = true;
+            this.cbExtractLanguageResource.Location = new System.Drawing.Point(8, 84);
+            this.cbExtractLanguageResource.Name = "cbExtractLanguageResource";
+            this.cbExtractLanguageResource.Size = new System.Drawing.Size(96, 16);
+            this.cbExtractLanguageResource.TabIndex = 1002;
+            this.cbExtractLanguageResource.Text = "提取语言资源";
+            this.cbExtractLanguageResource.UseVisualStyleBackColor = true;
             // 
             // ParameterForm
             // 
@@ -235,6 +259,8 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TextBox txtLog;
+        private System.Windows.Forms.CheckBox cbAllowModifyXamlFile;
+        private System.Windows.Forms.CheckBox cbExtractLanguageResource;
     }
 }
 
