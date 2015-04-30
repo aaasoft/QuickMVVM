@@ -11,8 +11,9 @@ namespace LanguageResourceMaker.Core.FileHandlers
 {
     public class XamlFileHandler : AbstractFileHandler
     {
-        //"(?'value'[^"]*?[\u4E00-\u9FA5]+[^"]*?)"
-        private Regex regex = new Regex("\"(?'value'[^\"]*?[\u4E00-\u9FA5]+[^\"]*?)\"");
+        //第一次："(?'value'[^"]*?[\u4E00-\u9FA5]+[^"]*?)"
+		//第二次："(?'value'[^"|\n]*?[\u4E00-\u9FA5]+[^"|\n]*?)"
+        private Regex regex = new Regex("\"(?'value'[^\"|\\n]*?[\u4E00-\u9FA5]+[^\"|\\n]*?)\"");
         private MainEngineConfig config;
 
         public XamlFileHandler(MainEngineConfig config)
@@ -38,8 +39,6 @@ namespace LanguageResourceMaker.Core.FileHandlers
                 if (!valueGroup.Success)
                     return match.Value;
                 String value = valueGroup.Value;
-                if (value.Contains("<!--"))
-                    return match.Value;
 
                 if (value.StartsWith("{}"))
                     value = value.Substring(2);
