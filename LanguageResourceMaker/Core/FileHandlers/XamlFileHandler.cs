@@ -12,7 +12,7 @@ namespace LanguageResourceMaker.Core.FileHandlers
     public class XamlFileHandler : AbstractFileHandler
     {
         //第一次："(?'value'[^"]*?[\u4E00-\u9FA5]+[^"]*?)"
-		//第二次："(?'value'[^"|\n]*?[\u4E00-\u9FA5]+[^"|\n]*?)"
+        //第二次："(?'value'[^"|\n]*?[\u4E00-\u9FA5]+[^"|\n]*?)"
         private Regex regex = new Regex("\"(?'value'[^\"|\\n]*?[\u4E00-\u9FA5]+[^\"|\\n]*?)\"");
         private MainEngineConfig config;
 
@@ -28,11 +28,12 @@ namespace LanguageResourceMaker.Core.FileHandlers
 
         public override void Handle(FileInfo viewFile, DirectoryInfo projectFolder)
         {
-            List<String> textList = new List<string>();
+            Dictionary<String, String> textDict = new Dictionary<string, string>();
 
             String xamlContent = File.ReadAllText(viewFile.FullName);
             Boolean isContentChanged = false;
 
+            Int32 index = 1;
             xamlContent = regex.Replace(xamlContent, match =>
             {
                 var valueGroup = match.Groups["value"];
@@ -44,17 +45,18 @@ namespace LanguageResourceMaker.Core.FileHandlers
                     value = value.Substring(2);
                 else
                     isContentChanged = true;
-                textList.Add(value);
+                textDict.Add(index.ToString(), value);
+                index++;
                 return String.Format("\"{0}\"", "{}" + value);
             });
-            if (textList.Count == 0)
+            if (textDict.Count == 0)
                 return;
 
             //如果允许修改XAML文件并且内容发生了变化
             if (config.AllowModifyXamlFile && isContentChanged)
                 File.WriteAllText(viewFile.FullName, xamlContent, Encoding.UTF8);
 
-            OutputLanguageFileAction(Path.GetFileNameWithoutExtension(viewFile.Name), projectFolder, textList, Thread.CurrentThread.CurrentCulture.Name);
+            OutputLanguageFileAction(Path.GetFileNameWithoutExtension(viewFile.Name), projectFolder, textDict, Thread.CurrentThread.CurrentCulture.Name);
         }
     }
 }

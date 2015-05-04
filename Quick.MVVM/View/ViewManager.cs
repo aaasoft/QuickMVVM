@@ -172,9 +172,6 @@ namespace Quick.MVVM.View
         /// <returns></returns>
         public String GetText(Int32 index, Type type)
         {
-            if (index < 1)
-                return null;
-
             lock (typeLanguageResourceDict)
             {
                 if (!typeLanguageResourceDict.ContainsKey(type))
@@ -188,10 +185,9 @@ namespace Quick.MVVM.View
                     if (objs != null
                         && objs.Length > 0)
                     {
-                        for (int i = 0; i < objs.Length; i++)
+                        foreach (TextAttribute textAttribute in objs)
                         {
-                            TextAttribute textAttribute = (TextAttribute)objs[i];
-                            languageResourceDict.Add(i + 1, textAttribute.Value);
+                            languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
                         }
                     }
 

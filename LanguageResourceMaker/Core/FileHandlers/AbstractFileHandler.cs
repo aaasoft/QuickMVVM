@@ -12,7 +12,7 @@ namespace LanguageResourceMaker.Core.FileHandlers
             return String.Empty;
         }
 
-        public virtual Action<string, System.IO.DirectoryInfo, List<string>, string> OutputLanguageFileAction { get; set; }
+        public virtual Action<string, System.IO.DirectoryInfo, Dictionary<String, String>, string> OutputLanguageFileAction { get; set; }
 
 
         public abstract void Handle(System.IO.FileInfo viewFile, System.IO.DirectoryInfo projectFolder);

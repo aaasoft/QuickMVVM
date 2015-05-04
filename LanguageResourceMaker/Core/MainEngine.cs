@@ -33,7 +33,7 @@ namespace LanguageResourceMaker.Core
                 });
         }
 
-        private void outputLanguageFile(String outputFileNameWithoutExtension, DirectoryInfo projectFolder, List<String> textList, String language)
+        private void outputLanguageFile(String outputFileNameWithoutExtension, DirectoryInfo projectFolder, Dictionary<String, String> textDict, String language)
         {
             //输出到语言文件
             String outputFolder = null;
@@ -50,7 +50,7 @@ namespace LanguageResourceMaker.Core
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
             String languageFileName = Path.Combine(outputFolder, abstractOutputFileName);
-            File.WriteAllText(languageFileName, LanguageUtils.GetToWriteLanguageText(textList), Encoding.UTF8);
+            File.WriteAllText(languageFileName, LanguageUtils.GetToWriteLanguageText(textDict), Encoding.UTF8);
             allLanguageFileList.Add(languageFileName);
         }
 
@@ -94,8 +94,8 @@ namespace LanguageResourceMaker.Core
                         Dictionary<Int32, String> languageDict = ResourceUtils.GetLanguageResourceDictionary(languageFileContent);
                         String newFullFileName = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(languageFile)),
                             language, Path.GetFileName(languageFile));
-                        List<String> newList = new List<string>();
-
+                        
+                        Dictionary<String, String> textDict = new Dictionary<string, string>();
                         foreach (Int32 index in languageDict.Keys)
                         {
                             String text = languageDict[index];
@@ -115,12 +115,12 @@ namespace LanguageResourceMaker.Core
                                     }
                                 }
                             } while (newText == null);
-                            newList.Add(newText);
+                            textDict.Add(index.ToString(), newText);
                         }
                         String newFullFileFolderName = Path.GetDirectoryName(newFullFileName);
                         if (!Directory.Exists(newFullFileFolderName))
                             Directory.CreateDirectory(newFullFileFolderName);
-                        File.WriteAllText(newFullFileName, LanguageUtils.GetToWriteLanguageText(newList), Encoding.UTF8);
+                        File.WriteAllText(newFullFileName, LanguageUtils.GetToWriteLanguageText(textDict), Encoding.UTF8);
                     }
                 }
             }

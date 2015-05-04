@@ -7,12 +7,12 @@ namespace LanguageResourceMaker.Utils
 {
     public class LanguageUtils
     {
-        public static String GetToWriteLanguageText(List<String> textList)
+        public static String GetToWriteLanguageText(Dictionary<String, String> textDict)
         {
             StringBuilder sb = new StringBuilder();
-            for (int j = 0; j < textList.Count; j++)
+            foreach (String key in textDict.Keys)
             {
-                sb.AppendLine(String.Format("{0}={1}", j + 1, textList[j]));
+                sb.AppendLine(String.Format("{0}={1}", key, textDict[key]));
             }
             return sb.ToString();
         }

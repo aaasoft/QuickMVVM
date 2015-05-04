@@ -9,7 +9,7 @@ namespace LanguageResourceMaker.Core
     public interface IFileHandler
     {
         String GetFolderPath();
-        Action<String, DirectoryInfo, List<String>, String> OutputLanguageFileAction { get; set; }
+        Action<String, DirectoryInfo, Dictionary<String, String>, String> OutputLanguageFileAction { get; set; }
         void Handle(FileInfo viewFile, DirectoryInfo projectFolder);
     }
 }

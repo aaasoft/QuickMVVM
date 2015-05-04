@@ -11,8 +11,8 @@ namespace LanguageResourceMaker.Core.FileHandlers
 {
     public class CsFileHandler : AbstractFileHandler
     {
-        //\[(?'attribute'.*?)\s*\(.*?"(?'value'.*?)"\s*\)\s*]
-        private Regex regex = new Regex("\\[(?'name'.*?)\\s*\\(.*?\"(?'value'.*?)\"\\s*\\)\\s*]");
+        //\[(?'name'.*?)\s*?\(\s*?(?'index'-?\d+)\s*?,\s*?"(?'value'.*?)"\s*\)\s*]
+        private Regex regex = new Regex("\\[(?'name'.*?)\\s*?\\(\\s*?(?'index'-?\\d+)\\s*?,\\s*?\"(?'value'.*?)\"\\s*\\)\\s*]");
 
         public override void Handle(FileInfo viewFile, DirectoryInfo projectFolder)
         {
@@ -33,19 +33,21 @@ namespace LanguageResourceMaker.Core.FileHandlers
 
         private void handle(TypeDeclaration type, DirectoryInfo projectFolder)
         {
-            List<String> textList = new List<string>();
+            Dictionary<String, String> textDict = new Dictionary<string, string>();
             foreach (AttributeSection attribute in type.Attributes)
             {
                 String attributeText = attribute.ToString();
                 Match match = regex.Match(attributeText);
                 Group nameGroup = match.Groups["name"];
+                Group indexGroup = match.Groups["index"];
                 Group valueGroup = match.Groups["value"];
-                if (!nameGroup.Success || nameGroup.Value != "Text" || !valueGroup.Success)
+                if (!nameGroup.Success || nameGroup.Value != "Text" || !indexGroup.Success || !valueGroup.Success)
                     continue;
+                String index = indexGroup.Value;
                 String value = valueGroup.Value;
-                textList.Add(value);
+                textDict.Add(index, value);
             }
-            if (textList.Count == 0)
+            if (textDict.Count == 0)
                 return;
 
             TypeDeclaration currentType = type;
@@ -70,10 +72,10 @@ namespace LanguageResourceMaker.Core.FileHandlers
                 else
                     throw new ApplicationException("Type's parent unknown!");
             }
-            handle(typeFullName, textList, projectFolder);
+            handle(typeFullName, textDict, projectFolder);
         }
 
-        private void handle(String typeFullName, List<String> textList, DirectoryInfo projectFolder)
+        private void handle(String typeFullName, Dictionary<String, String> textDict, DirectoryInfo projectFolder)
         {
             String outFileName;
             String projectName = projectFolder.Name;
@@ -84,7 +86,7 @@ namespace LanguageResourceMaker.Core.FileHandlers
             else
                 outFileName = typeFullName;
 
-            OutputLanguageFileAction(outFileName, projectFolder, textList, Thread.CurrentThread.CurrentCulture.Name);
+            OutputLanguageFileAction(outFileName, projectFolder, textDict, Thread.CurrentThread.CurrentCulture.Name);
         }
     }
 }
