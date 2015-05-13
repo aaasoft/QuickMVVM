@@ -349,20 +349,21 @@ namespace Quick.MVVM.View
             //要搜索的可能的xaml文件名称
             List<String> viewXamlFileNameList = new List<string>() { viewModelTypeFullName + ".xaml" };
             //要搜索的可能的xaml的语言文件名称
-            List<String> viewXamlLanguageFileNameList = new List<string>() { viewModelTypeFullName + ".txt" };
+            List<String> viewXamlLanguageFileNameList = new List<string>();
 
             if (viewModelTypeFullName.StartsWith(viewModelAssemblyName + "."))
             {
                 String shortName = viewModelTypeFullName.Substring((viewModelAssemblyName + ".").Length);
-                viewXamlFileNameList.Add(shortName + ".xaml");
-                viewXamlLanguageFileNameList.Add(shortName + ".txt");
 
                 if (shortName.StartsWith("ViewModel."))
                 {
                     viewXamlFileNameList.Add(shortName.Substring("ViewModel.".Length) + ".xaml");
                     viewXamlLanguageFileNameList.Add(shortName.Substring("ViewModel.".Length) + ".txt");
                 }
+                viewXamlFileNameList.Add(shortName + ".xaml");
+                viewXamlLanguageFileNameList.Add(shortName + ".txt");
             }
+            viewXamlFileNameList.Add(viewModelTypeFullName + ".txt");
 
             //xaml文件内容
             String xamlContent = ResourceUtils.GetResourceText(

@@ -1,4 +1,5 @@
-﻿using Quick.MVVM.ViewModel;
+﻿using Quick.MVVM.Utils;
+using Quick.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace Demo.ViewModel.Impl
         public System.Windows.Input.ICommand Login { get; private set; }
         public System.Windows.Input.ICommand ChangeTheme { get; private set; }
         public System.Windows.Input.ICommand ChangeLanguage { get; private set; }
+        public System.Windows.Input.ICommand Test { get; private set; }
 
         public override void Init()
         {
@@ -33,6 +35,7 @@ namespace Demo.ViewModel.Impl
             };
             ChangeTheme = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeTheme };
             ChangeLanguage = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeLanguage };
+            Test = new DelegateCommand() { ExecuteCommand = executeCommand_Test };
         }
 
         /// <summary>
@@ -62,6 +65,14 @@ namespace Demo.ViewModel.Impl
         private void executeCommand_ChangeLanguage(object argument)
         {
             Start.ViewManager.CurrentLanguage = argument.ToString();
+        }
+
+        private void executeCommand_Test(object obj)
+        {
+            new Window()
+            {
+                Content = Start.ViewManager.GetView<ViewModel.Test.IView>()
+            }.ShowDialog();
         }
     }
 }

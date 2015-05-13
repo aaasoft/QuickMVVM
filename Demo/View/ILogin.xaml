@@ -42,6 +42,7 @@
                     <Button  Margin="5" Content="{}Blue" Command="{Binding ChangeTheme}" CommandParameter="Blue" />
                     <Button  Margin="5" Content="{}en-US" Command="{Binding ChangeLanguage}" CommandParameter="en-US" />
                     <Button  Margin="5" Content="{}zh-CN" Command="{Binding ChangeLanguage}" CommandParameter="zh-CN" />
+                    <Button  Margin="5" Content="{}Test" Command="{Binding Test}" />
                 </StackPanel>
 
                 <ContentControl Grid.Row="3">

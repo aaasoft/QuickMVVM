@@ -25,5 +25,9 @@ namespace Demo.ViewModel
         /// 改变语言
         /// </summary>
         ICommand ChangeLanguage { get; }
+        /// <summary>
+        /// 测试命令
+        /// </summary>
+        ICommand Test { get; }
     }
 }

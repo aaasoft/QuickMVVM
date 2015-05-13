@@ -17,8 +17,32 @@ namespace Quick.MVVM.Utils
             String filePath = null;
             foreach (String fileName in fileNameList)
             {
+                //先判断全名文件是否存在
                 filePath = Path.Combine(baseFolder, fileName);
                 isFileExists = File.Exists(filePath);
+                if (isFileExists)
+                    break;
+                //然后判断目录下面的文件是否存在
+                List<Int32> dotIndexList = new List<int>();
+                Int32 currentIndex = 0;
+                while (true)
+                {
+                    Int32 dotIndex = fileName.IndexOf('.', currentIndex);
+                    if (dotIndex < 0)
+                        break;
+                    dotIndexList.Add(dotIndex);
+                    currentIndex = dotIndex + 1;
+                }
+                StringBuilder sb = new StringBuilder(fileName);
+                foreach (Int32 dotIndex in dotIndexList)
+                {
+                    sb.Remove(dotIndex, 1);
+                    sb.Insert(dotIndex, Path.DirectorySeparatorChar);
+                    filePath = Path.Combine(baseFolder, sb.ToString());
+                    isFileExists = File.Exists(filePath);
+                    if (isFileExists)
+                        break;
+                }
                 if (isFileExists)
                     break;
             }

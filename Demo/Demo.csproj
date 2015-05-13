@@ -59,8 +59,10 @@
     </ApplicationDefinition>
     <Compile Include="ViewModel.Impl\Login_Impl.cs" />
     <Compile Include="ViewModel.Impl\Main_Impl.cs" />
+    <Compile Include="ViewModel.Impl\Test\IView.cs" />
     <Compile Include="ViewModel\ILogin.cs" />
     <Compile Include="ViewModel\IMain.cs" />
+    <Compile Include="ViewModel\Test\IView.cs" />
     <Page Include="Start.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -93,6 +95,10 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="View\Code.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\Test\IView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -133,6 +139,7 @@
   <ItemGroup>
     <EmbeddedResource Include="View\Language\zh-CN\ILogin.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
