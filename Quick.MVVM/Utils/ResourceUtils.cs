@@ -10,6 +10,29 @@ namespace Quick.MVVM.Utils
 {
     public class ResourceUtils
     {
+        //搜索文件
+        private static String findFilePath(String baseFolder, String fileName)
+        {
+            String fullFileName = Path.Combine(baseFolder, fileName);
+            if (File.Exists(fullFileName))
+                return fullFileName;
+
+            String[] nameArray = fileName.Split(new Char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 1; i < nameArray.Length; i++)
+            {
+                String folderName = String.Join(".", nameArray, 0, i);
+                String fullFolderPath = Path.Combine(baseFolder, folderName);
+                if (!Directory.Exists(fullFolderPath))
+                    continue;
+                String subFileName = String.Join(".", nameArray, i, nameArray.Length - i);
+
+                fullFileName = findFilePath(fullFolderPath, subFileName);
+                if (fullFileName != null)
+                    return fullFileName;
+            }
+            return null;
+        }
+
         public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
         {
             //文件是否存在
@@ -18,31 +41,8 @@ namespace Quick.MVVM.Utils
             foreach (String fileName in fileNameList)
             {
                 //先判断全名文件是否存在
-                filePath = Path.Combine(baseFolder, fileName);
-                isFileExists = File.Exists(filePath);
-                if (isFileExists)
-                    break;
-                //然后判断目录下面的文件是否存在
-                List<Int32> dotIndexList = new List<int>();
-                Int32 currentIndex = 0;
-                while (true)
-                {
-                    Int32 dotIndex = fileName.IndexOf('.', currentIndex);
-                    if (dotIndex < 0)
-                        break;
-                    dotIndexList.Add(dotIndex);
-                    currentIndex = dotIndex + 1;
-                }
-                StringBuilder sb = new StringBuilder(fileName);
-                foreach (Int32 dotIndex in dotIndexList)
-                {
-                    sb.Remove(dotIndex, 1);
-                    sb.Insert(dotIndex, Path.DirectorySeparatorChar);
-                    filePath = Path.Combine(baseFolder, sb.ToString());
-                    isFileExists = File.Exists(filePath);
-                    if (isFileExists)
-                        break;
-                }
+                filePath = findFilePath(baseFolder, fileName);
+                isFileExists = filePath != null;
                 if (isFileExists)
                     break;
             }
