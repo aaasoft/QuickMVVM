@@ -54,6 +54,11 @@ namespace Quick.MVVM.ViewModel
         
         private IViewModel _CreateInstance(Type viewModelType)
         {
+            if (viewModelType == null)
+                return null;
+            if (!viewModelType.IsInterface)
+                throw new ApplicationException("ViewModel type must be an 'interface',not a 'class'.");
+
             //如果此程序集没有扫描过，则扫描此程序集中所有的类
             if (!scanedAssemblyHashSet.Contains(viewModelType.Assembly))
             {
