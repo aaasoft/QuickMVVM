@@ -1,9 +1,0 @@
-﻿1=Login
-2=Demo
-3=Quick.MVVM Demo
-4=Login
-5=Input your name:
-6=T:Default
-7=T:Blue
-8=T:en-US
-9=T:zh-CN

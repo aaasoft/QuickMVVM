@@ -1,14 +1,41 @@
-﻿using Quick.MVVM.Utils;
-using Quick.MVVM.ViewModel;
+﻿using Quick.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 
-namespace Demo.ViewModel.Impl
+namespace Demo
 {
-    public class Login_Impl : QM_ViewModelBase, ILogin
+    public interface ILogin : IViewModel
+    {
+        /// <summary>
+        /// 用户名
+        /// </summary>
+        String UserName { get; set; }
+        /// <summary>
+        /// 登录命令(PasswordBox控件作为此命令的参数)
+        /// </summary>
+        ICommand Login { get; }
+        /// <summary>
+        /// 改变主题
+        /// </summary>
+        ICommand ChangeTheme { get; }
+        /// <summary>
+        /// 改变语言
+        /// </summary>
+        ICommand ChangeLanguage { get; }
+        /// <summary>
+        /// 测试命令
+        /// </summary>
+        ICommand Test { get; }
+    }
+}
+
+namespace Demo.Impl
+{
+    public class ILogin : QM_ViewModelBase, Demo.ILogin
     {
         private String _UserName;
         public string UserName
@@ -71,7 +98,7 @@ namespace Demo.ViewModel.Impl
         {
             new Window()
             {
-                Content = Start.ViewManager.GetView<ViewModel.Test.IView>()
+                Content = Start.ViewManager.GetView<Test.IView>()
             }.ShowDialog();
         }
     }

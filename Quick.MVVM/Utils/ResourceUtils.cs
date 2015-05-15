@@ -59,7 +59,7 @@ namespace Quick.MVVM.Utils
             {
                 foreach (String fileName in fileNameList)
                 {
-                    //"{0}.View.{1}"
+                    //"{0}.[ThemePathInAssembly].{1}"
                     String resourceName = String.Format(fullFileNameTemplate, templateParams);
                     resourceName = resourceName.Replace("[fileName]", fileName);
                     resourceName = resourceName.Replace("-", "_");

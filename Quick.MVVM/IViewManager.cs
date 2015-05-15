@@ -24,7 +24,7 @@ namespace Quick.MVVM
         /// <summary>
         /// 视图文件目录
         /// </summary>
-        String ViewFileFolder { get; set; }
+        String ThemeFolder { get; set; }
         /// <summary>
         /// 获取或设置当前主题
         /// </summary>

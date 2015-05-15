@@ -33,7 +33,7 @@ namespace Demo
         {
             String baseDirectory = Path.GetDirectoryName(typeof(Start).Assembly.Location);
             ViewModelManager = new ViewModelManager();
-            ViewManager = new ViewManager(Path.Combine(baseDirectory, "View"))
+            ViewManager = new ViewManager(Path.Combine(baseDirectory, "Theme"), "Theme")
             {
                 ViewModelManager = ViewModelManager
             };
@@ -75,7 +75,7 @@ namespace Demo
                     mainNavigationService.Navigate(view);
                 }
             };
-            navigator.Navigate<Demo.ViewModel.ILogin>();
+            navigator.Navigate<Demo.ILogin>();
         }
     }
 }

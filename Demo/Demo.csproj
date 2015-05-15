@@ -57,12 +57,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ViewModel.Impl\Login_Impl.cs" />
-    <Compile Include="ViewModel.Impl\Main_Impl.cs" />
-    <Compile Include="ViewModel.Impl\Test\IView.cs" />
-    <Compile Include="ViewModel\ILogin.cs" />
-    <Compile Include="ViewModel\IMain.cs" />
-    <Compile Include="ViewModel\Test\IView.cs" />
+    <Compile Include="ILogin.cs" />
+    <Compile Include="IMain.cs" />
+    <Compile Include="Test\IView.cs" />
     <Page Include="Start.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -82,23 +79,23 @@
       <DependentUpon>StartWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="View\ILogin.xaml">
+    <EmbeddedResource Include="Theme\ILogin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="View\IMain.xaml">
+    <EmbeddedResource Include="Theme\IMain.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="View\Head.xaml">
+    <EmbeddedResource Include="Theme\Head.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="View\Code.xaml">
+    <EmbeddedResource Include="Theme\Code.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="View\Test\IView.xaml">
+    <EmbeddedResource Include="Theme\Test\IView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -134,10 +131,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="View\Language\en-US\ILogin.txt" />
+    <EmbeddedResource Include="Theme\Language\en-US\ILogin.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="View\Language\zh-CN\ILogin.txt" />
+    <EmbeddedResource Include="Theme\Language\zh-CN\ILogin.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
