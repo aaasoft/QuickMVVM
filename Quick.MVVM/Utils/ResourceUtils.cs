@@ -33,7 +33,16 @@ namespace Quick.MVVM.Utils
             return null;
         }
 
-        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        /// <summary>
+        /// 获取资源
+        /// </summary>
+        /// <param name="fileNameList"></param>
+        /// <param name="assembly"></param>
+        /// <param name="baseFolder"></param>
+        /// <param name="fullFileNameTemplate"></param>
+        /// <param name="templateParams"></param>
+        /// <returns></returns>
+        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
         {
             //文件是否存在
             Boolean isFileExists = false;
@@ -47,12 +56,10 @@ namespace Quick.MVVM.Utils
                     break;
             }
 
-            String fileContent = null;
-
-            //先尝试从目录加载文件
+            //先尝试从目录加载
             if (isFileExists)
             {
-                fileContent = File.ReadAllText(filePath);
+                return File.Open(filePath, FileMode.Open);
             }
             //然后尝试从程序集资源中加载
             else
@@ -65,16 +72,27 @@ namespace Quick.MVVM.Utils
                     resourceName = resourceName.Replace("-", "_");
                     Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
                     if (resourceStream != null)
-                    {
-                        StreamReader streamReader = new StreamReader(resourceStream);
-                        fileContent = streamReader.ReadToEnd();
-                        streamReader.Close();
-                        resourceStream.Close();
-                        break;
-                    }
+                        return resourceStream;
                 }
             }
-            return fileContent;
+            return null;
+        }
+
+        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        {
+            Stream resourceStream = GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, templateParams);
+            if (resourceStream == null)
+                return null;
+
+            using (resourceStream)
+            {
+                String fileContent = null;
+                StreamReader streamReader = new StreamReader(resourceStream);
+                fileContent = streamReader.ReadToEnd();
+                streamReader.Close();
+                resourceStream.Close();
+                return fileContent;
+            }
         }
 
         /// <summary>

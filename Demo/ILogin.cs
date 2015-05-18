@@ -31,11 +31,8 @@ namespace Demo
         /// </summary>
         ICommand Test { get; }
     }
-}
 
-namespace Demo.Impl
-{
-    public class ILogin : QM_ViewModelBase, Demo.ILogin
+    class _ILogin : QM_ViewModelBase, ILogin
     {
         private String _UserName;
         public string UserName

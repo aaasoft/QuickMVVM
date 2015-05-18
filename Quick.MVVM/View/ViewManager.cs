@@ -344,6 +344,48 @@ namespace Quick.MVVM.View
             }
         }
 
+        /// <summary>
+        /// 获取资源文件
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
+        public String GetResourceText(Assembly assembly, String resourceName)
+        {
+            Stream stream = GetResource(assembly, resourceName);
+            if (stream == null)
+                return null;
+            using (stream)
+            {
+                String fileContent = null;
+                StreamReader streamReader = new StreamReader(stream);
+                fileContent = streamReader.ReadToEnd();
+                streamReader.Close();
+                stream.Close();
+                return fileContent;
+            }
+        }
+
+        /// <summary>
+        /// 获取资源
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
+        public Stream GetResource(Assembly assembly, String resourceName)
+        {
+            //视图模型接口类所在的程序集名称
+            String assemblyName = assembly.GetName().Name;
+            String viewBaseFolder = Path.Combine(ThemeFolder, CurrentTheme, assemblyName);
+
+            return ResourceUtils.GetResource(
+                new List<String>() { resourceName },
+                assembly,
+                viewBaseFolder,
+                "{0}." + ThemePathInAssembly + ".[fileName]",
+                assemblyName);
+        }
+
         private String getXamlContent(String viewModelTypeFullName, Assembly viewModelAssembly)
         {
             //视图模型接口类所在的程序集名称

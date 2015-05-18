@@ -1,7 +1,9 @@
 ﻿using Quick.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -115,5 +117,19 @@ namespace Quick.MVVM
         /// <param name="theme"></param>
         /// <returns></returns>
         String[] GetLanguages(String theme);
+        /// <summary>
+        /// 获取资源文件
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
+        String GetResourceText(Assembly assembly, String resourceName);
+        /// <summary>
+        /// 获取资源
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
+        Stream GetResource(Assembly assembly, String resourceName);
     }
 }
