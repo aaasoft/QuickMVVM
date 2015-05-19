@@ -79,9 +79,7 @@ namespace LanguageResourceMaker.Core.FileHandlers
         {
             String outFileName;
             String projectName = projectFolder.Name;
-            if (typeFullName.StartsWith(projectName + ".ViewModel."))
-                outFileName = typeFullName.Substring((projectName + ".ViewModel.").Length);
-            else if (typeFullName.StartsWith(projectName + "."))
+            if (typeFullName.StartsWith(projectName + "."))
                 outFileName = typeFullName.Substring((projectName + ".").Length);
             else
                 outFileName = typeFullName;

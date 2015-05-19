@@ -38,7 +38,7 @@ namespace LanguageResourceMaker.Core
             //输出到语言文件
             String outputFolder = null;
             if (String.IsNullOrEmpty(config.OutputFolder))
-                outputFolder = Path.Combine(projectFolder.FullName, "View");
+                outputFolder = Path.Combine(projectFolder.FullName, "Theme");
             else
                 outputFolder = Path.Combine(config.OutputFolder, projectFolder.Name);
 

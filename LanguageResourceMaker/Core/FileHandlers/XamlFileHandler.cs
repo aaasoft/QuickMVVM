@@ -23,7 +23,7 @@ namespace LanguageResourceMaker.Core.FileHandlers
 
         public override string GetFolderPath()
         {
-            return "View";
+            return "Theme";
         }
 
         public override void Handle(FileInfo viewFile, DirectoryInfo projectFolder)
