@@ -488,63 +488,61 @@ namespace Quick.MVVM.View
             return xamlContent;
         }
 
-        public FrameworkElement GetView(Type viewModelType)
+        public FrameworkElement GetView(Assembly assembly, String resourcePath)
         {
-            //视图模型接口类所在的程序集
-            Assembly viewModelAssembly = viewModelType.Assembly;
-            //视图模型接口类所在的程序集名称
-            String viewModelAssemblyName = viewModelAssembly.GetName().Name;
-            ////视图模型接口类完整名称
-            String viewModelTypeFullName = viewModelType.FullName;
-
-            String xamlContent = getXamlContent(viewModelTypeFullName, viewModelAssembly);
+            String xamlContent = getXamlContent(resourcePath, assembly);
 
             //如果得到了xaml内容
-            if (!String.IsNullOrEmpty(xamlContent))
+            if (String.IsNullOrEmpty(xamlContent))
+                return null;
+            Regex regex = null;
+
+            //处理#include预处理指令
+            //<!--#include\("path=(?'path'.*?)(;assembly=(?'assembly'.*?))?"\)-->
+            regex = new Regex("<!--#include\\(\"path=(?'path'.*?)(;assembly=(?'assembly'.*?))?\"\\)-->");
+            while (regex.IsMatch(xamlContent))
             {
-                Regex regex = null;
-
-                //处理#include预处理指令
-                //<!--#include\("path=(?'path'.*?)(;assembly=(?'assembly'.*?))?"\)-->
-                regex = new Regex("<!--#include\\(\"path=(?'path'.*?)(;assembly=(?'assembly'.*?))?\"\\)-->");
-                while (regex.IsMatch(xamlContent))
+                xamlContent = regex.Replace(xamlContent, match =>
                 {
-                    xamlContent = regex.Replace(xamlContent, match =>
+                    var pathGroup = match.Groups["path"];
+                    var assemblyGroup = match.Groups["assembly"];
+
+                    String path = pathGroup.Value;
+                    Assembly currentAssembly = null;
+
+                    String fullPath = null;
+                    if (assemblyGroup.Success)
                     {
-                        var pathGroup = match.Groups["path"];
-                        var assemblyGroup = match.Groups["assembly"];
-
-                        String path = pathGroup.Value;
-                        Assembly currentAssembly = null;
-
-                        String fullPath = null;
-                        if (assemblyGroup.Success)
+                        currentAssembly = Assembly.Load(assemblyGroup.Value);
+                        fullPath = path;
+                    }
+                    else
+                    {
+                        currentAssembly = assembly;
+                        if (path.StartsWith("."))
                         {
-                            currentAssembly = Assembly.Load(assemblyGroup.Value);
-                            fullPath = path;
+                            String viewModelFolderPath = Path.GetDirectoryName(resourcePath.Replace('.', Path.DirectorySeparatorChar));
+                            fullPath = Path.Combine(viewModelFolderPath, path).Replace(Path.DirectorySeparatorChar, '.');
                         }
                         else
-                        {
-                            currentAssembly = viewModelAssembly;
-                            if (path.StartsWith("."))
-                            {
-                                String viewModelFolderPath = Path.GetDirectoryName(viewModelTypeFullName.Replace('.', Path.DirectorySeparatorChar));
-                                fullPath = Path.Combine(viewModelFolderPath, path).Replace(Path.DirectorySeparatorChar, '.');
-                            }
-                            else
-                                fullPath = path;
-                        }
-                        return getXamlContent(fullPath, currentAssembly);
-                    });
-                }
-                return (FrameworkElement)System.Windows.Markup.XamlReader.Parse(xamlContent);
+                            fullPath = path;
+                    }
+                    return getXamlContent(fullPath, currentAssembly);
+                });
             }
+            return (FrameworkElement)System.Windows.Markup.XamlReader.Parse(xamlContent);
+        }
 
-            //最后从注册的视图中加载
-            if (!viewModelTypeViewTypeDict.ContainsKey(viewModelType))
-                return null;
-            Type viewType = viewModelTypeViewTypeDict[viewModelType];
-            return (FrameworkElement)Activator.CreateInstance(viewType);
+        public FrameworkElement GetView(Type viewModelType)
+        {
+            //先从注册的视图中加载
+            if (viewModelTypeViewTypeDict.ContainsKey(viewModelType))
+            {
+                Type viewType = viewModelTypeViewTypeDict[viewModelType];
+                return (FrameworkElement)Activator.CreateInstance(viewType);
+            }
+            //然后从主题目录和程序集资源中加载
+            return GetView(viewModelType.Assembly, viewModelType.FullName);
         }
 
         public Object GetView<TViewModelType>()

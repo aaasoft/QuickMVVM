@@ -79,6 +79,13 @@ namespace Quick.MVVM
         /// <summary>
         /// 获取View对象
         /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourcePath"></param>
+        /// <returns></returns>
+        FrameworkElement GetView(Assembly assembly, String resourcePath);
+        /// <summary>
+        /// 获取View对象
+        /// </summary>
         /// <typeparam name="TViewModelType"></typeparam>
         /// <returns></returns>
         Object GetView<TViewModelType>()
