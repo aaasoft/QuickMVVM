@@ -11,23 +11,13 @@ namespace Quick.MVVM.View.Behaviors
 {
     public class FrameworkElementWindowDataBehavior : Behavior<FrameworkElement>
     {
-        public WindowState WindowState { get; set; }
-        public WindowStyle WindowStyle { get; set; }
-        public WindowStartupLocation WindowStartupLocation { get; set; }
-        public SizeToContent SizeToContent { get; set; }
-        public ResizeMode ResizeMode { get; set; }
+        public WindowState? WindowState { get; set; }
+        public WindowStyle? WindowStyle { get; set; }
+        public WindowStartupLocation? WindowStartupLocation { get; set; }
+        public SizeToContent? SizeToContent { get; set; }
+        public ResizeMode? ResizeMode { get; set; }
         public String Title { get; set; }
-
-        public FrameworkElementWindowDataBehavior()
-        {
-            WindowState = WindowState.Normal;
-            WindowStyle = WindowStyle.SingleBorderWindow;
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            SizeToContent = SizeToContent.Manual;
-            ResizeMode = ResizeMode.CanResize;
-            Title = String.Empty;
-        }
-
+        
         protected override void OnAttached()
         {
             base.OnAttached();
@@ -46,27 +36,38 @@ namespace Quick.MVVM.View.Behaviors
 
                     if (!String.IsNullOrEmpty(Title))
                         win.Title = Title;
-                    element.Dispatcher.BeginInvoke(new Action(() => win.SizeToContent = SizeToContent));
-                    element.Dispatcher.BeginInvoke(new Action(() => win.WindowState = WindowState));
-                    element.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        if (win.AllowsTransparency == false)
-                            win.WindowStyle = WindowStyle;
-                    }));
-                    element.Dispatcher.BeginInvoke(new Action(() => win.ResizeMode = ResizeMode));
-                    element.Dispatcher.BeginInvoke(new Action(() =>
+                    if (SizeToContent.HasValue)
+                        element.Dispatcher.BeginInvoke(new Action(() => win.SizeToContent = SizeToContent.Value));
+                    if (WindowStyle.HasValue)
+                        element.Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            win.WindowStartupLocation = WindowStartupLocation;
-                            switch (WindowStartupLocation)
-                            {
-                                case WindowStartupLocation.CenterScreen:
-                                    WindowUtils.SetWindowPositionToScreenCenter(win);
-                                    break;
-                                case WindowStartupLocation.CenterOwner:
-                                    WindowUtils.SetWindowPositionToOwnerCenter(win);
-                                    break;
-                            }
+                            if (win.AllowsTransparency == false)
+                                win.WindowStyle = WindowStyle.Value;
                         }));
+                    if (ResizeMode.HasValue)
+                        element.Dispatcher.BeginInvoke(new Action(() => win.ResizeMode = ResizeMode.Value));
+                    if (WindowStartupLocation.HasValue)
+                        element.Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                win.WindowStartupLocation = WindowStartupLocation.Value;
+                                switch (WindowStartupLocation.Value)
+                                {
+                                    case System.Windows.WindowStartupLocation.CenterScreen:
+                                        WindowUtils.SetWindowPositionToScreenCenter(win);
+                                        break;
+                                    case System.Windows.WindowStartupLocation.CenterOwner:
+                                        WindowUtils.SetWindowPositionToOwnerCenter(win);
+                                        break;
+                                }
+                            }));
+                    if (WindowState.HasValue)
+                    {
+                        element.Dispatcher.BeginInvoke(new Action(() => { }));
+                        element.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            win.WindowState = WindowState.Value;
+                        }));
+                    }
                 };
             element.Loaded += handler;
         }
