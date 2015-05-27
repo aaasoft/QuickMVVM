@@ -19,13 +19,13 @@ namespace Quick.MVVM.View
         /// </summary>
         public String ThemePathInAssembly { get; set; }
         /// <summary>
+        /// 程序集中的语言目录名称
+        /// </summary>
+        public String LanguagePathInAssembly { get; set; }
+        /// <summary>
         /// 语言目录
         /// </summary>
         public String LanguageFolder { get; set; }
-        /// <summary>
-        /// 程序集中的语言路径
-        /// </summary>
-        public String LanguagePathInAssembly { get; set; }
         /// <summary>
         /// 视图文件后缀
         /// </summary>

@@ -230,9 +230,9 @@ namespace Quick.MVVM.View
                     languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
                             languageFileNameList,
                             assembly,
-                            Path.Combine(viewBaseFolder, "Language", this.CurrentLanguage),
+                            Path.Combine(viewBaseFolder, this.Config.LanguagePathInAssembly, this.CurrentLanguage),
                             "{0}." + this.Config.ThemePathInAssembly + ".{1}.{2}.[fileName]",
-                            assemblyName, "Language", this.CurrentLanguage
+                            assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage
                         );
                     if (languageContent != null)
                     {
@@ -594,13 +594,24 @@ namespace Quick.MVVM.View
         {
             Collection<String> collection = new Collection<string>();
 
-            System.IO.DirectoryInfo viewDi = new System.IO.DirectoryInfo(Path.Combine(this.Config.ThemeFolder, this.CurrentTheme));
-            //先从文件中读取
+            //搜索语言目录
+            DirectoryInfo languageFolderDi = new DirectoryInfo(this.Config.LanguageFolder);
+            if(languageFolderDi.Exists)
+            {
+                foreach (String languageName in languageFolderDi.GetDirectories().Select(t => t.Name))
+                {
+                    if (!collection.Contains(languageName))
+                        collection.Add(languageName);
+                }
+            }
+
+            //搜索主题目录
+            DirectoryInfo viewDi = new DirectoryInfo(Path.Combine(this.Config.ThemeFolder, this.CurrentTheme));
             if (viewDi.Exists)
             {
                 foreach (var assemblyDi in viewDi.GetDirectories())
                 {
-                    System.IO.DirectoryInfo languageDi = new DirectoryInfo(Path.Combine(assemblyDi.FullName, "Language"));
+                    System.IO.DirectoryInfo languageDi = new DirectoryInfo(Path.Combine(assemblyDi.FullName, this.Config.LanguagePathInAssembly));
                     if (!languageDi.Exists)
                         continue;
                     foreach (String languageName in languageDi.GetDirectories().Select(t => t.Name))
