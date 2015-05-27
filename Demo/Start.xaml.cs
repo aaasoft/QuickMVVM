@@ -33,7 +33,15 @@ namespace Demo
         {
             String baseDirectory = Path.GetDirectoryName(typeof(Start).Assembly.Location);
             ViewModelManager = new ViewModelManager();
-            ViewManager = new ViewManager(Path.Combine(baseDirectory, "Theme"), "Theme")
+            ViewManager = new ViewManager(new ViewManagerConfig()
+            {
+                ThemeFolder = Path.Combine(baseDirectory, "Theme"),
+                ThemePathInAssembly = "Theme",
+                ViewFileExtension = ".xaml",
+                LanguageFolder = Path.Combine(baseDirectory, "Language"),
+                LanguagePathInAssembly = "Language",
+                LanguageFileExtension = ".txt"
+            })
             {
                 ViewModelManager = ViewModelManager
             };
@@ -41,10 +49,10 @@ namespace Demo
 
         public Start()
         {
-            
+
             InitializeComponent();
         }
-        
+
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             if (isLoaded) return;

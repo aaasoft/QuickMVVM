@@ -24,7 +24,7 @@ namespace Quick.MVVM.View
         public const String CONST_DEFAULT_LANGUAGE = "zh-CN";
 
         //类的语言资源字典
-        private static Dictionary<Type, Dictionary<Int32, String>> typeLanguageResourceDict = new Dictionary<Type, Dictionary<int, string>>();
+        private static Dictionary<String, Dictionary<Int32, String>> typeLanguageResourceDict = new Dictionary<String, Dictionary<int, string>>();
         private static DependencyProperty CurrentThemeProperty = DependencyProperty.RegisterAttached("CurrentTheme", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_THEME));
         private static DependencyProperty CurrentLanguageProperty = DependencyProperty.RegisterAttached("CurrentLanguage", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_LANGUAGE));
 
@@ -50,14 +50,10 @@ namespace Quick.MVVM.View
         }
 
         /// <summary>
-        /// 主题目录
+        /// 配置
         /// </summary>
-        public String ThemeFolder { get; set; }
-        /// <summary>
-        /// 程序集中的主题路径主题路径
-        /// </summary>
-        public String ThemePathInAssembly { get; set; }
-
+        public ViewManagerConfig Config { get; set; }
+        
         private String currentTheme = CONST_DEFAULT_THEME;
         private String currentLanguage = CONST_DEFAULT_LANGUAGE;
 
@@ -120,10 +116,9 @@ namespace Quick.MVVM.View
                 eventHandler.Invoke(this, EventArgs.Empty);
         }
 
-        public ViewManager(String themeFolder, String themePathInAssembly)
+        public ViewManager(ViewManagerConfig config)
         {
-            this.ThemeFolder = themeFolder;
-            this.ThemePathInAssembly = themePathInAssembly;
+            this.Config = config;
 
             //XML转义符
             xmlReplaceDict = new Dictionary<string, string>();
@@ -160,6 +155,100 @@ namespace Quick.MVVM.View
             }
         }
 
+        private Dictionary<Int32, String> getLanguageResourceDict(Type type)
+        {
+            //读取类的TextAttribute特性
+            Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
+            if (objs != null
+                && objs.Length > 0)
+                return getLanguageResourceDict(type.Assembly, type.FullName);
+            return getLanguageResourceDict(type.Assembly, type.FullName, objs.Select(t => (TextAttribute)t).ToArray());
+        }
+
+        private Dictionary<Int32, String> getLanguageResourceDict(Assembly assembly, String resourcePath, params TextAttribute[] textAttributes)
+        {
+            String key = String.Format("{0};{1}", assembly.GetName().Name, resourcePath);
+            lock (typeLanguageResourceDict)
+            {
+                if (!typeLanguageResourceDict.ContainsKey(key))
+                {
+                    Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
+                    //添加到字典中
+                    typeLanguageResourceDict.Add(key, languageResourceDict);
+
+                    //==========================
+                    //先从类特性中读取
+                    //==========================
+                    if (textAttributes != null)
+                    {
+                        foreach (TextAttribute textAttribute in textAttributes)
+                        {
+                            languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
+                        }
+                    }
+                    //==========================
+                    //然后尝试从资源文件中读取
+                    //==========================
+                    //视图模型接口类所在的程序集名称
+                    String assemblyName = assembly.GetName().Name;
+
+                    //==========================
+                    //最后搜索语言目录和主题目录下的文件
+                    //==========================
+                    //要搜索的可能的语言文件名称
+                    List<String> languageFileNameList = new List<string>();
+
+                    if (resourcePath.StartsWith(assemblyName + "."))
+                    {
+                        String shortName = resourcePath.Substring((assemblyName + ".").Length);
+                        languageFileNameList.Add(shortName + this.Config.LanguageFileExtension);
+                    }
+                    languageFileNameList.Add(resourcePath + this.Config.LanguageFileExtension);
+
+                    //语言目录下的语言文件内容
+                    String languageBaseFolder = Path.Combine(this.Config.LanguageFolder, this.CurrentLanguage, assemblyName);
+                    String languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
+                            languageFileNameList,
+                            assembly,
+                            languageBaseFolder,
+                            "{0}." + this.Config.LanguagePathInAssembly + ".{1}.[fileName]",
+                            assemblyName, this.CurrentLanguage
+                        );
+                    if (languageContent != null)
+                    {
+                        var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
+                        foreach (int index in tmpDict.Keys)
+                        {
+                            if (languageResourceDict.ContainsKey(index))
+                                languageResourceDict.Remove(index);
+                            languageResourceDict.Add(index, tmpDict[index]);
+                        }
+                    }
+
+                    //主题目录下的语言文件内容
+                    String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, this.CurrentTheme, assemblyName);
+                    languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
+                            languageFileNameList,
+                            assembly,
+                            Path.Combine(viewBaseFolder, "Language", this.CurrentLanguage),
+                            "{0}." + this.Config.ThemePathInAssembly + ".{1}.{2}.[fileName]",
+                            assemblyName, "Language", this.CurrentLanguage
+                        );
+                    if (languageContent != null)
+                    {
+                        var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
+                        foreach (int index in tmpDict.Keys)
+                        {
+                            if (languageResourceDict.ContainsKey(index))
+                                languageResourceDict.Remove(index);
+                            languageResourceDict.Add(index, tmpDict[index]);
+                        }
+                    }
+                }
+                return typeLanguageResourceDict[key];
+            }
+        }
+
         /// <summary>
         /// 获取语言文字
         /// </summary>
@@ -178,70 +267,11 @@ namespace Quick.MVVM.View
         /// <returns></returns>
         public String GetText(Int32 index, Type type)
         {
-            lock (typeLanguageResourceDict)
-            {
-                if (!typeLanguageResourceDict.ContainsKey(type))
-                {
-                    Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
-                    //添加到字典中
-                    typeLanguageResourceDict.Add(type, languageResourceDict);
-
-                    //先从类特性中读取
-                    Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
-                    if (objs != null
-                        && objs.Length > 0)
-                    {
-                        foreach (TextAttribute textAttribute in objs)
-                        {
-                            languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
-                        }
-                    }
-
-                    //然后尝试从资源文件中读取
-                    //视图模型接口类所在的程序集名称
-                    String typeFullName = type.FullName;
-                    Assembly assembly = type.Assembly;
-                    String assemblyName = assembly.GetName().Name;
-                    String languageResourceFolder = Path.Combine(this.ThemeFolder, this.CurrentTheme, assemblyName);
-                    String viewBaseFolder = Path.Combine(this.ThemeFolder, this.CurrentTheme, assemblyName);
-
-                    //要搜索的可能的语言文件名称
-                    List<String> languageFileNameList = new List<string>() ;
-
-                    if (typeFullName.StartsWith(assemblyName + "."))
-                    {
-                        String shortName = typeFullName.Substring((assemblyName + ".").Length);
-                        languageFileNameList.Add(shortName + ".txt");
-                    }
-                    languageFileNameList.Add(typeFullName + ".txt");
-
-                    //此xaml文件对应的语言文件内容
-                    String languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
-                            languageFileNameList,
-                            assembly,
-                            Path.Combine(viewBaseFolder, "Language", this.CurrentLanguage),
-                            "{0}." + ThemePathInAssembly + ".{1}.{2}.[fileName]",
-                            assemblyName, "Language", this.CurrentLanguage
-                        );
-                    if (languageContent != null)
-                    {
-                        var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
-                        foreach (int key in tmpDict.Keys)
-                        {
-                            if (languageResourceDict.ContainsKey(key))
-                                languageResourceDict.Remove(key);
-                            languageResourceDict.Add(key, tmpDict[key]);
-                        }
-                    }
-                }
-                if (typeLanguageResourceDict.ContainsKey(type))
-                {
-                    Dictionary<Int32, String> languageResourceDict = typeLanguageResourceDict[type];
-                    if (languageResourceDict.ContainsKey(index))
-                        return languageResourceDict[index];
-                }
-            }
-            return String.Format("Language Resource[Type:{0}, Index:{1}] not found!", type.FullName, index);
+            Dictionary<Int32, String> languageResourceDict = getLanguageResourceDict(type);
+            if (languageResourceDict == null
+                || !languageResourceDict.ContainsKey(index))
+                return String.Format("Language Resource[Type:{0}, Index:{1}] not found!", type.FullName, index);
+            return languageResourceDict[index];
         }
 
         public void RegisterView<TViewModelType, TViewType>()
@@ -376,54 +406,39 @@ namespace Quick.MVVM.View
         {
             //视图模型接口类所在的程序集名称
             String assemblyName = assembly.GetName().Name;
-            String viewBaseFolder = Path.Combine(ThemeFolder, CurrentTheme, assemblyName);
+            String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, CurrentTheme, assemblyName);
 
             return ResourceUtils.GetResource(
                 new List<String>() { resourceName },
                 assembly,
                 viewBaseFolder,
-                "{0}." + ThemePathInAssembly + ".[fileName]",
+                "{0}." + this.Config.ThemePathInAssembly + ".[fileName]",
                 assemblyName);
         }
 
-        private String getXamlContent(String viewModelTypeFullName, Assembly viewModelAssembly)
+        private String getXamlContent(String resourcePath, Assembly assembly)
         {
             //视图模型接口类所在的程序集名称
-            String viewModelAssemblyName = viewModelAssembly.GetName().Name;
-            String viewBaseFolder = Path.Combine(ThemeFolder, CurrentTheme, viewModelAssemblyName);
+            String assemblyName = assembly.GetName().Name;
+            String themeFolder = Path.Combine(this.Config.ThemeFolder, CurrentTheme, assemblyName);
 
             //要搜索的可能的xaml文件名称
             List<String> viewXamlFileNameList = new List<string>();
-            //要搜索的可能的xaml的语言文件名称
-            List<String> viewXamlLanguageFileNameList = new List<string>();
 
-            if (viewModelTypeFullName.StartsWith(viewModelAssemblyName + "."))
+            if (resourcePath.StartsWith(assemblyName + "."))
             {
-                String shortName = viewModelTypeFullName.Substring((viewModelAssemblyName + ".").Length);
-                viewXamlFileNameList.Add(shortName + ".xaml");
-                viewXamlLanguageFileNameList.Add(shortName + ".txt");
+                String shortName = resourcePath.Substring((assemblyName + ".").Length);
+                viewXamlFileNameList.Add(shortName + this.Config.ViewFileExtension);
             }
-            viewXamlFileNameList.Add(viewModelTypeFullName + ".xaml");
-            viewXamlLanguageFileNameList.Add(viewModelTypeFullName + ".txt");
+            viewXamlFileNameList.Add(resourcePath + this.Config.ViewFileExtension);
 
             //xaml文件内容
             String xamlContent = ResourceUtils.GetResourceText(
                 viewXamlFileNameList,
-                viewModelAssembly,
-                viewBaseFolder,
-                "{0}." + ThemePathInAssembly + ".[fileName]",
-                viewModelAssemblyName);
-            if (xamlContent == null)
-                return null;
-
-            //此xaml文件对应的语言文件内容
-            String xamlLanguageContent = ResourceUtils.GetResourceText(
-                    viewXamlLanguageFileNameList,
-                    viewModelAssembly,
-                    Path.Combine(viewBaseFolder, "Language", CurrentLanguage),
-                    "{0}." + ThemePathInAssembly + ".{1}.{2}.[fileName]",
-                    viewModelAssemblyName, "Language", CurrentLanguage
-                );
+                assembly,
+                themeFolder,
+                "{0}." + this.Config.ThemePathInAssembly + ".[fileName]",
+                assemblyName);
             if (xamlContent == null)
                 return null;
 
@@ -440,7 +455,7 @@ namespace Quick.MVVM.View
 
                 if (clrNamespaceValue.Contains("assembly="))
                     return matchValue;
-                String newValue = matchValue.Replace(clrNamespaceValue, String.Format("{0};assembly={1}", clrNamespaceValue, viewModelAssemblyName));
+                String newValue = matchValue.Replace(clrNamespaceValue, String.Format("{0};assembly={1}", clrNamespaceValue, assemblyName));
                 return newValue;
             });
             //替换资源路径的相对路径为绝对路径
@@ -455,19 +470,19 @@ namespace Quick.MVVM.View
                 String resourceValue = resourceGroup.Value;
                 String newResourceUri = String.Empty;
 
-                String resourceFullPath = Path.Combine(viewBaseFolder, resourceValue);
+                String resourceFullPath = Path.Combine(themeFolder, resourceValue);
                 //如果资源文件存在
                 if (File.Exists(resourceFullPath))
                     newResourceUri = new Uri(resourceFullPath).AbsoluteUri;
                 //否则从程序集资源中获取
                 else
-                    newResourceUri = String.Format("pack://application:,,,/{0};component/" + ThemePathInAssembly + "/{1}", viewModelAssemblyName, resourceValue);
+                    newResourceUri = String.Format("pack://application:,,,/{0};component/" + this.Config.ThemePathInAssembly + "/{1}", assemblyName, resourceValue);
                 return String.Format("\"{0}\"", newResourceUri);
             });
             //替换语言资源
-            if (xamlLanguageContent != null)
+            Dictionary<Int32, String> languageDict = getLanguageResourceDict(assembly, resourcePath);
+            if (languageDict != null)
             {
-                Dictionary<Int32, String> languageDict = ResourceUtils.GetLanguageResourceDictionary(xamlLanguageContent);
                 //"(?'value'{}.*?)"
                 regex = new Regex("\"(?'value'{}.*?)\"");
                 Int32 languageIndex = 0;
@@ -564,7 +579,7 @@ namespace Quick.MVVM.View
         public string[] GetThemes()
         {
             Collection<String> collection = new Collection<string>();
-            System.IO.DirectoryInfo viewDi = new System.IO.DirectoryInfo(this.ThemeFolder);
+            System.IO.DirectoryInfo viewDi = new System.IO.DirectoryInfo(this.Config.ThemeFolder);
             if (viewDi.Exists)
             {
                 foreach (var themeDi in viewDi.GetDirectories())
@@ -579,7 +594,7 @@ namespace Quick.MVVM.View
         {
             Collection<String> collection = new Collection<string>();
 
-            System.IO.DirectoryInfo viewDi = new System.IO.DirectoryInfo(Path.Combine(this.ThemeFolder, this.CurrentTheme));
+            System.IO.DirectoryInfo viewDi = new System.IO.DirectoryInfo(Path.Combine(this.Config.ThemeFolder, this.CurrentTheme));
             //先从文件中读取
             if (viewDi.Exists)
             {

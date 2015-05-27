@@ -1,2 +1,2 @@
 ﻿<TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-           Text="#include('xxxxxx')" Foreground="Green" />
+           Text="&lt;!--#include(&quot;path=Head&quot;)--&gt;" Foreground="Green" />
