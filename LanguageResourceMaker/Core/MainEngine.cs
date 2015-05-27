@@ -16,7 +16,7 @@ namespace LanguageResourceMaker.Core
     {
         private MainEngineConfig config;
         private Dictionary<String, IFileHandler> fileHandlerDict = new Dictionary<string, IFileHandler>();
-        private List<String> allLanguageFileList = new List<String>();
+        private Dictionary<String, String> allLanguageFileDict = new Dictionary<string, string>();
 
         public MainEngine(MainEngineConfig config)
         {
@@ -33,25 +33,28 @@ namespace LanguageResourceMaker.Core
                 });
         }
 
-        private void outputLanguageFile(String outputFileNameWithoutExtension, DirectoryInfo projectFolder, Dictionary<String, String> textDict, String language)
+        private void outputLanguageFile(String outputFilePath, DirectoryInfo projectFolder, Dictionary<String, String> textDict, String language)
         {
             //输出到语言文件
-            String outputFolder = null;
+
+            String abstractOutputFolder = null;
             if (String.IsNullOrEmpty(config.OutputFolder))
-                outputFolder = Path.Combine(projectFolder.FullName, "Theme");
+            {
+                abstractOutputFolder = Path.Combine(projectFolder.FullName, "Language", "{0}");
+            }
             else
-                outputFolder = Path.Combine(config.OutputFolder, projectFolder.Name);
+            {
+                abstractOutputFolder = Path.Combine(config.OutputFolder, "Language", "{0}", projectFolder.Name);
+            }
 
-            String abstractOutputFolder = Path.Combine(outputFolder, "Language", "{0}");
-            String abstractOutputFileName = outputFileNameWithoutExtension + ".txt";
+            String abstractOutputFileName = Path.Combine(abstractOutputFolder, outputFilePath + ".txt");
+            String languageFileName = String.Format(abstractOutputFileName, language);
+            String dirPath = Path.GetDirectoryName(languageFileName);
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
 
-            //写默认语言资源到文件
-            outputFolder = String.Format(abstractOutputFolder, language);
-            if (!Directory.Exists(outputFolder))
-                Directory.CreateDirectory(outputFolder);
-            String languageFileName = Path.Combine(outputFolder, abstractOutputFileName);
             File.WriteAllText(languageFileName, LanguageUtils.GetToWriteLanguageText(textDict), Encoding.UTF8);
-            allLanguageFileList.Add(languageFileName);
+            allLanguageFileDict.Add(abstractOutputFileName, languageFileName);
         }
 
         private void _Start()
@@ -87,19 +90,21 @@ namespace LanguageResourceMaker.Core
                 config.PushLogAction("翻译中。。。");
                 foreach (String language in config.TranslateTarget)
                 {
-                    for (int j = 0; j < allLanguageFileList.Count; j++)
+                    String[] abstractLanguageFileNames = allLanguageFileDict.Keys.ToArray();
+                    for (int j = 0; j < abstractLanguageFileNames.Length; j++)
                     {
-                        String languageFile = allLanguageFileList[j];
+                        String abstractLanguageFileName = abstractLanguageFileNames[j];
+                        String languageFile = allLanguageFileDict[abstractLanguageFileName];
+
                         String languageFileContent = File.ReadAllText(languageFile);
                         Dictionary<Int32, String> languageDict = ResourceUtils.GetLanguageResourceDictionary(languageFileContent);
-                        String newFullFileName = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(languageFile)),
-                            language, Path.GetFileName(languageFile));
-                        
+                        String projectName = new DirectoryInfo(Path.GetDirectoryName(languageFile)).Name;
+                        String newFullFileName = String.Format(abstractLanguageFileName, language);                        
                         Dictionary<String, String> textDict = new Dictionary<string, string>();
                         foreach (Int32 index in languageDict.Keys)
                         {
                             String text = languageDict[index];
-                            config.UpdateLogAction(String.Format("正在翻译第[{0}/{1}]个语言文件[{2}]为[{3}]", j + 1, allLanguageFileList.Count, newFullFileName, language));
+                            config.UpdateLogAction(String.Format("正在翻译第[{0}/{1}]个语言文件[{2}]为[{3}]", j + 1, allLanguageFileDict.Count, newFullFileName, language));
                             String newText = null;
                             do
                             {

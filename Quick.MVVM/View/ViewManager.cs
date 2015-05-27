@@ -159,8 +159,8 @@ namespace Quick.MVVM.View
         {
             //读取类的TextAttribute特性
             Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
-            if (objs != null
-                && objs.Length > 0)
+            if (objs == null
+                || objs.Length == 0)
                 return getLanguageResourceDict(type.Assembly, type.FullName);
             return getLanguageResourceDict(type.Assembly, type.FullName, objs.Select(t => (TextAttribute)t).ToArray());
         }

@@ -28,6 +28,8 @@ namespace LanguageResourceMaker.Core.FileHandlers
 
         public override void Handle(FileInfo viewFile, DirectoryInfo projectFolder)
         {
+            String themeBaseFolder = Path.Combine(projectFolder.FullName, GetFolderPath());
+
             Dictionary<String, String> textDict = new Dictionary<string, string>();
 
             String xamlContent = File.ReadAllText(viewFile.FullName);
@@ -56,7 +58,9 @@ namespace LanguageResourceMaker.Core.FileHandlers
             if (config.AllowModifyXamlFile && isContentChanged)
                 File.WriteAllText(viewFile.FullName, xamlContent, Encoding.UTF8);
 
-            OutputLanguageFileAction(Path.GetFileNameWithoutExtension(viewFile.Name), projectFolder, textDict, Thread.CurrentThread.CurrentCulture.Name);
+            String reFilePath = viewFile.FullName.Substring(themeBaseFolder.Length + 1);
+            reFilePath = Path.ChangeExtension(reFilePath, null);
+            OutputLanguageFileAction(reFilePath, projectFolder, textDict, Thread.CurrentThread.CurrentCulture.Name);
         }
     }
 }
