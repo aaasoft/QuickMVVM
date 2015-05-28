@@ -115,11 +115,10 @@ namespace Quick.MVVM
         /// <returns></returns>
         String[] GetThemes();
         /// <summary>
-        /// 得到指定主题下全部可用的语言列表
+        /// 得到当前主题下全部可用的语言列表
         /// </summary>
-        /// <param name="theme"></param>
         /// <returns></returns>
-        String[] GetLanguages(String theme);
+        String[] GetLanguages();
         /// <summary>
         /// 获取资源文件
         /// </summary>

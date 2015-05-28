@@ -590,7 +590,7 @@ namespace Quick.MVVM.View
             return collection.ToArray();
         }
 
-        public string[] GetLanguages(string theme)
+        public string[] GetLanguages()
         {
             Collection<String> collection = new Collection<string>();
 
