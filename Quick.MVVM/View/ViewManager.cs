@@ -101,12 +101,12 @@ namespace Quick.MVVM.View
             set
             {
                 currentLanguage = value;
-                fireEvent(LanguageChanged);
-                reloadView();
                 lock (typeLanguageResourceDict)
                 {
                     typeLanguageResourceDict.Clear();
                 }
+                fireEvent(LanguageChanged);
+                reloadView();                
             }
         }
 
