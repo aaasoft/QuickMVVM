@@ -494,7 +494,13 @@ namespace Quick.MVVM.View
                             String value = languageDict[languageIndex];
                             foreach (String replaceKey in xmlReplaceDict.Keys)
                                 if (value.Contains(replaceKey))
-                                    value = value.Replace(replaceKey, xmlReplaceDict[replaceKey]);
+                                {
+                                    String newLanguageValue = xmlReplaceDict[replaceKey];
+                                    //替换需要转义的字符
+                                    if (newLanguageValue.Contains("{") && !newLanguageValue.StartsWith("{}"))
+                                        newLanguageValue = "{}" + value;
+                                    value = value.Replace(replaceKey, newLanguageValue);
+                                }
                             return String.Format("\"{0}\"", value);
                         }
                         return match.Value;
