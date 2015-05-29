@@ -53,7 +53,7 @@ namespace Quick.MVVM.ViewModel
             viewModel.IsInited = true;
             return viewModel;
         }
-        
+
         private IViewModel _CreateInstance(Type viewModelType)
         {
             if (viewModelType == null)
@@ -115,12 +115,14 @@ namespace Quick.MVVM.ViewModel
         public Type GetViewModelInterfaceType(IViewModel viewModel)
         {
             Type viewModelImplType = viewModel.GetType();
-            foreach (Type interfaceType in viewModelImplType.GetInterfaces())
+
+            Type[] viewModelTypes = viewModelImplType.GetInterfaces()
+                .Where(interfaceType => typeof(IViewModel).IsAssignableFrom(interfaceType))
+                .ToArray();
+            foreach (Type viewModelType in viewModelTypes)
             {
-                if (interfaceType == typeof(IViewModel))
-                    continue;
-                if (typeof(IViewModel).IsAssignableFrom(interfaceType))
-                    return interfaceType;
+                if (viewModelTypes.Count(t => viewModelType.IsAssignableFrom(t)) == 1)
+                    return viewModelType;
             }
             return null;
         }
