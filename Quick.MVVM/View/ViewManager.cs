@@ -132,7 +132,7 @@ namespace Quick.MVVM.View
         //重新加载视图
         private void reloadView()
         {
-            foreach (IViewModel viewModel in currentVisiableViewModelHashSet)
+            foreach (IViewModel viewModel in currentVisiableViewModelHashSet.ToArray())
                 reloadView(viewModel);
         }
 
