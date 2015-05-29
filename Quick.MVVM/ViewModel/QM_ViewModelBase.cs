@@ -26,6 +26,7 @@ namespace Quick.MVVM.ViewModel
             }
         }
         public virtual INavigator Navigator { get; set; }
+        public Boolean IsInited { get; set; }
 
         /// <summary>
         /// 初始化方法

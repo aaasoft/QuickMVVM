@@ -33,6 +33,7 @@ namespace Quick.MVVM.ViewModel
             if (initAction != null)
                 initAction(viewModel);
             viewModel.Init();
+            viewModel.IsInited = true;
             return viewModel;
         }
 
@@ -49,6 +50,7 @@ namespace Quick.MVVM.ViewModel
             if (initAction != null)
                 initAction(viewModel);
             viewModel.Init();
+            viewModel.IsInited = true;
             return viewModel;
         }
         

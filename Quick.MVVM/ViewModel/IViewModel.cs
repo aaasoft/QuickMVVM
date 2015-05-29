@@ -19,6 +19,10 @@ namespace Quick.MVVM.ViewModel
         /// </summary>
         INavigator Navigator { get; set; }
         /// <summary>
+        /// 是否已经初始化
+        /// </summary>
+        Boolean IsInited { get; set; }
+        /// <summary>
         /// 初始化方法
         /// </summary>
         void Init();
