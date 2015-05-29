@@ -27,7 +27,7 @@ namespace Quick.MVVM.View.Behaviors
             handler = (sender, e) =>
                 {
                     element.Loaded -= handler;
-                    Window win = WindowUtils.GetWindow(element);
+                    Window win = Window.GetWindow(element);
 
                     //如果是浏览器承载的窗口，则不支持设置窗体的属性
                     if (BrowserInteropHelper.IsBrowserHosted

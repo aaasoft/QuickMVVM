@@ -69,26 +69,5 @@ namespace Quick.MVVM.Utils
             return owner != null
                 && owner.GetType().FullName == "MS.Internal.AppModel.RootBrowserWindow";
         }
-
-        /// <summary>
-        /// 得到对象所属的窗口
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static Window GetWindow(Object element)
-        {
-            DependencyObject currentDpObj = element as DependencyObject;
-            Window win = null;
-            while (true)
-            {
-                if (currentDpObj == null || currentDpObj is Window)
-                {
-                    win = currentDpObj as Window;
-                    break;
-                }
-                currentDpObj = VisualTreeHelper.GetParent(currentDpObj);
-            }
-            return win;
-        }
     }
 }
