@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -7,7 +8,7 @@ using System.Windows.Input;
 
 namespace Quick.MVVM.ViewModel
 {
-    public interface IViewModel
+    public interface IViewModel : INotifyPropertyChanged
     {
         /// <summary>
         /// 此视图模型对应的视图对象
