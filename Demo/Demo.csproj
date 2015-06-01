@@ -131,10 +131,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Language\en-US\ILogin.txt" />
+    <EmbeddedResource Include="Language\en-US\ILogin.xaml.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Language\zh-CN\ILogin.txt" />
+    <EmbeddedResource Include="Language\zh-CN\ILogin.xaml.txt" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

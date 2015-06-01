@@ -59,7 +59,6 @@ namespace LanguageResourceMaker.Core.FileHandlers
                 File.WriteAllText(viewFile.FullName, xamlContent, Encoding.UTF8);
 
             String reFilePath = viewFile.FullName.Substring(themeBaseFolder.Length + 1);
-            reFilePath = Path.ChangeExtension(reFilePath, null);
             OutputLanguageFileAction(reFilePath, projectFolder, textDict, Thread.CurrentThread.CurrentCulture.Name);
         }
     }

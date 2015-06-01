@@ -157,12 +157,29 @@ namespace Quick.MVVM.View
 
         private Dictionary<Int32, String> getLanguageResourceDict(Type type)
         {
-            //读取类的TextAttribute特性
-            Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
-            if (objs == null
-                || objs.Length == 0)
-                return getLanguageResourceDict(type.Assembly, type.FullName);
-            return getLanguageResourceDict(type.Assembly, type.FullName, objs.Select(t => (TextAttribute)t).ToArray());
+            String key = String.Format("{0};{1}", type.Assembly.GetName().Name, type.FullName);
+            lock (typeLanguageResourceDict)
+            {
+                if (typeLanguageResourceDict.ContainsKey(key))
+                    return typeLanguageResourceDict[key];
+
+                Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
+                typeLanguageResourceDict.Add(key, languageResourceDict);
+                //读取类的TextAttribute特性
+                Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
+                //==========================
+                //先从类特性中读取
+                //==========================
+                if (objs != null && objs.Length > 0)
+                {
+                    foreach (TextAttribute textAttribute in objs)
+                    {
+                        languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
+                    }
+                }
+                fillLanguageResourceDict(type.Assembly, type.FullName, languageResourceDict);
+                return languageResourceDict;
+            }
         }
 
         private Dictionary<Int32, String> getLanguageResourceDict(Assembly assembly, String resourcePath, params TextAttribute[] textAttributes)
@@ -170,82 +187,74 @@ namespace Quick.MVVM.View
             String key = String.Format("{0};{1}", assembly.GetName().Name, resourcePath);
             lock (typeLanguageResourceDict)
             {
-                if (!typeLanguageResourceDict.ContainsKey(key))
+                if (typeLanguageResourceDict.ContainsKey(key))
+                    return typeLanguageResourceDict[key];
+                Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
+                typeLanguageResourceDict.Add(key, languageResourceDict);
+                fillLanguageResourceDict(assembly, resourcePath, languageResourceDict);
+                return languageResourceDict;
+            }
+        }
+
+        private void fillLanguageResourceDict(Assembly assembly, String resourcePath, Dictionary<Int32, String> languageResourceDict)
+        {
+            //==========================
+            //然后尝试从资源文件中读取
+            //==========================
+            //视图模型接口类所在的程序集名称
+            String assemblyName = assembly.GetName().Name;
+
+            //==========================
+            //最后搜索语言目录和主题目录下的文件
+            //==========================
+            //要搜索的可能的语言文件名称
+            List<String> languageFileNameList = new List<string>();
+
+            if (resourcePath.StartsWith(assemblyName + "."))
+            {
+                String shortName = resourcePath.Substring((assemblyName + ".").Length);
+                languageFileNameList.Add(shortName + this.Config.LanguageFileExtension);
+            }
+            languageFileNameList.Add(resourcePath + this.Config.LanguageFileExtension);
+
+            //语言目录下的语言文件内容
+            String languageBaseFolder = Path.Combine(this.Config.LanguageFolder, this.CurrentLanguage, assemblyName);
+            String languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
+                    languageFileNameList,
+                    assembly,
+                    languageBaseFolder,
+                    "{0}." + this.Config.LanguagePathInAssembly + ".{1}.[fileName]",
+                    assemblyName, this.CurrentLanguage
+                );
+            if (languageContent != null)
+            {
+                var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
+                foreach (int index in tmpDict.Keys)
                 {
-                    Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
-                    //添加到字典中
-                    typeLanguageResourceDict.Add(key, languageResourceDict);
-
-                    //==========================
-                    //先从类特性中读取
-                    //==========================
-                    if (textAttributes != null)
-                    {
-                        foreach (TextAttribute textAttribute in textAttributes)
-                        {
-                            languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
-                        }
-                    }
-                    //==========================
-                    //然后尝试从资源文件中读取
-                    //==========================
-                    //视图模型接口类所在的程序集名称
-                    String assemblyName = assembly.GetName().Name;
-
-                    //==========================
-                    //最后搜索语言目录和主题目录下的文件
-                    //==========================
-                    //要搜索的可能的语言文件名称
-                    List<String> languageFileNameList = new List<string>();
-
-                    if (resourcePath.StartsWith(assemblyName + "."))
-                    {
-                        String shortName = resourcePath.Substring((assemblyName + ".").Length);
-                        languageFileNameList.Add(shortName + this.Config.LanguageFileExtension);
-                    }
-                    languageFileNameList.Add(resourcePath + this.Config.LanguageFileExtension);
-
-                    //语言目录下的语言文件内容
-                    String languageBaseFolder = Path.Combine(this.Config.LanguageFolder, this.CurrentLanguage, assemblyName);
-                    String languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
-                            languageFileNameList,
-                            assembly,
-                            languageBaseFolder,
-                            "{0}." + this.Config.LanguagePathInAssembly + ".{1}.[fileName]",
-                            assemblyName, this.CurrentLanguage
-                        );
-                    if (languageContent != null)
-                    {
-                        var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
-                        foreach (int index in tmpDict.Keys)
-                        {
-                            if (languageResourceDict.ContainsKey(index))
-                                languageResourceDict.Remove(index);
-                            languageResourceDict.Add(index, tmpDict[index]);
-                        }
-                    }
-
-                    //主题目录下的语言文件内容
-                    String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, this.CurrentTheme, assemblyName);
-                    languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
-                            languageFileNameList,
-                            assembly,
-                            Path.Combine(viewBaseFolder, this.Config.LanguagePathInAssembly, this.CurrentLanguage),
-                            "{0}." + this.Config.ThemePathInAssembly + ".{1}.{2}.[fileName]",
-                            assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage
-                        );
-                    if (languageContent != null)
-                    {
-                        var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
-                        foreach (int index in tmpDict.Keys)
-                        {
-                            if (languageResourceDict.ContainsKey(index))
-                                languageResourceDict.Remove(index);
-                            languageResourceDict.Add(index, tmpDict[index]);
-                        }
-                    }
+                    if (languageResourceDict.ContainsKey(index))
+                        languageResourceDict.Remove(index);
+                    languageResourceDict.Add(index, tmpDict[index]);
                 }
-                return typeLanguageResourceDict[key];
+            }
+
+            //主题目录下的语言文件内容
+            String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, this.CurrentTheme, assemblyName);
+            languageContent = Quick.MVVM.Utils.ResourceUtils.GetResourceText(
+                    languageFileNameList,
+                    assembly,
+                    Path.Combine(viewBaseFolder, this.Config.LanguagePathInAssembly, this.CurrentLanguage),
+                    "{0}." + this.Config.ThemePathInAssembly + ".{1}.{2}.[fileName]",
+                    assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage
+                );
+            if (languageContent != null)
+            {
+                var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
+                foreach (int index in tmpDict.Keys)
+                {
+                    if (languageResourceDict.ContainsKey(index))
+                        languageResourceDict.Remove(index);
+                    languageResourceDict.Add(index, tmpDict[index]);
+                }
             }
         }
 
@@ -480,7 +489,7 @@ namespace Quick.MVVM.View
                 return String.Format("\"{0}\"", newResourceUri);
             });
             //替换语言资源
-            Dictionary<Int32, String> languageDict = getLanguageResourceDict(assembly, resourcePath);
+            Dictionary<Int32, String> languageDict = getLanguageResourceDict(assembly, resourcePath + Config.ViewFileExtension);
             if (languageDict != null)
             {
                 //"(?'value'{}.*?)"
