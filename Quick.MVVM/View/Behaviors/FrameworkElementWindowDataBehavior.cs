@@ -28,7 +28,8 @@ namespace Quick.MVVM.View.Behaviors
                 {
                     element.Loaded -= handler;
                     Window win = Window.GetWindow(element);
-
+                    if (win == null)
+                        return;
                     //如果是浏览器承载的窗口，则不支持设置窗体的属性
                     if (BrowserInteropHelper.IsBrowserHosted
                         && WindowUtils.IsWindowRootBrowserWindow(win))
