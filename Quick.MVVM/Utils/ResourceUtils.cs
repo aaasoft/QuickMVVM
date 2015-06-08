@@ -44,6 +44,14 @@ namespace Quick.MVVM.Utils
         /// <returns></returns>
         public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
         {
+            String findedResourcePath;
+            return GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
+        }
+
+        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate,out String findedResourcePath, params Object[] templateParams)
+        {
+            findedResourcePath = null;
+
             //文件是否存在
             Boolean isFileExists = false;
             String filePath = null;
@@ -59,6 +67,7 @@ namespace Quick.MVVM.Utils
             //先尝试从目录加载
             if (isFileExists)
             {
+                findedResourcePath = filePath;
                 return File.Open(filePath, FileMode.Open);
             }
             //然后尝试从程序集资源中加载
@@ -72,7 +81,10 @@ namespace Quick.MVVM.Utils
                     resourceName = resourceName.Replace("-", "_");
                     Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
                     if (resourceStream != null)
+                    {
+                        findedResourcePath = String.Format("pack://application:,,,/{0};component/{1}", assembly.GetName().Name, resourceName);
                         return resourceStream;
+                    }
                 }
             }
             return null;
@@ -80,7 +92,13 @@ namespace Quick.MVVM.Utils
 
         public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
         {
-            Stream resourceStream = GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, templateParams);
+            String findedResourcePath;
+            return GetResourceText(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
+        }
+
+        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, out String findedResourcePath, params Object[] templateParams)
+        {
+            Stream resourceStream = GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
             if (resourceStream == null)
                 return null;
 

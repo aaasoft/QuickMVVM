@@ -479,6 +479,15 @@ namespace Quick.MVVM.View
                 String resourceValue = resourceGroup.Value;
                 String newResourceUri = String.Empty;
 
+                while (resourceValue.StartsWith("./")
+                    || resourceValue.StartsWith("../"))
+                {
+                    if (resourceValue.StartsWith("./"))
+                        resourceValue = resourceValue.Substring("./".Length);
+                    if (resourceValue.StartsWith("../"))
+                        resourceValue = resourceValue.Substring("../".Length);
+                }
+
                 String resourceFullPath = Path.Combine(themeFolder, resourceValue);
                 //如果资源文件存在
                 if (File.Exists(resourceFullPath))
