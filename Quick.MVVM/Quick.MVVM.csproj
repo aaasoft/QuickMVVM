@@ -63,6 +63,7 @@
     <Compile Include="ViewModel\QM_ViewModelBase.cs" />
     <Compile Include="ViewModel\ViewModelManager.cs" />
     <Compile Include="View\Behaviors\FrameworkElementWindowDataBehavior.cs" />
+    <Compile Include="View\TriggerActions\InvokeCommandAction.cs" />
     <Compile Include="View\ViewManager.cs" />
     <Compile Include="View\ViewManagerConfig.cs" />
   </ItemGroup>
