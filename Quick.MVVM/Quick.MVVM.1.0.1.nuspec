@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>Quick.MVVM</id>
+        <version>1.0.1</version>
+        <title>Quick.MVVM</title>
+        <authors>scbeta</authors>
+        <owners>scbeta</owners>
+        <projectUrl>https://github.com/aaasoft/QuickMVVM</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>An simple MVVM framework for WPF.</description>
+        <dependencies>
+            <group targetFramework=".NETFramework4.0">
+                <dependency id="System.Windows.Interactivity.WPF" version="2.0.20525" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="bin\Release\Quick.MVVM.dll" target="lib\net40\Quick.MVVM.dll" />
+    </files>
+</package>
