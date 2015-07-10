@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -48,10 +49,18 @@ namespace Quick.MVVM.Utils
             return GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
         }
 
-        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate,out String findedResourcePath, params Object[] templateParams)
+        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, out String findedResourcePath, params Object[] templateParams)
         {
             findedResourcePath = null;
+            Uri uri = GetResourceUri(fileNameList, assembly, baseFolder, fullFileNameTemplate, templateParams);
+            if (uri == null)
+                return null;
+            findedResourcePath = uri.ToString();
+            return WebRequest.Create(uri).GetResponse().GetResponseStream();
+        }
 
+        public static Uri GetResourceUri(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        {
             //文件是否存在
             Boolean isFileExists = false;
             String filePath = null;
@@ -67,24 +76,45 @@ namespace Quick.MVVM.Utils
             //先尝试从目录加载
             if (isFileExists)
             {
-                findedResourcePath = filePath;
-                return File.Open(filePath, FileMode.Open);
+                return new Uri(filePath);
             }
             //然后尝试从程序集资源中加载
             else
             {
+                String assemblyName = assembly.GetName().Name;
+
+                //先寻找嵌入的资源
                 foreach (String fileName in fileNameList)
                 {
                     //"{0}.[ThemePathInAssembly].{1}"
                     String resourceName = String.Format(fullFileNameTemplate, templateParams);
                     resourceName = resourceName.Replace("[fileName]", fileName);
                     resourceName = resourceName.Replace("-", "_");
-                    Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
-                    if (resourceStream != null)
+                    ManifestResourceInfo resourceInfo = assembly.GetManifestResourceInfo(resourceName);
+                    if (resourceInfo != null)
                     {
-                        findedResourcePath = String.Format("pack://application:,,,/{0};component/{1}", assembly.GetName().Name, resourceName);
-                        return resourceStream;
+                        //return new Uri(String.Format("pack://application:,,,/{0};component/{1}", assembly.GetName().Name, resourceName));
+                        return new Uri(String.Format("embed://{0}/{1}", assemblyName, resourceName));
                     }
+                }
+                //然后寻找Resource资源
+                foreach (String fileName in fileNameList)
+                {
+                    String resourceName = String.Format(fullFileNameTemplate, templateParams);
+                    resourceName = resourceName.Replace("[fileName]", fileName);
+                    resourceName = resourceName.Replace("-", "_");
+                    //"Theme/Search.png" --> OK
+                    Uri uri = new Uri(String.Format("pack://application:,,,/{0};component/{1}", assemblyName, resourceName));
+
+                    var abc = System.Windows.Application.GetResourceStream(uri);
+                    Stream stream = null;
+                    stream = WebRequest.Create(uri).GetResponse().GetResponseStream();
+                    if (stream != null)
+                    {
+                        stream.Close();
+                        return uri;
+                    }
+                    
                 }
             }
             return null;

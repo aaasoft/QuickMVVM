@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -119,6 +120,11 @@ namespace Quick.MVVM.View
         public ViewManager(ViewManagerConfig config)
         {
             this.Config = config;
+
+            //注册pack:前缀URI处理程序
+            WebRequest.RegisterPrefix("pack:", new System.IO.Packaging.PackWebRequestFactory());
+            //注册embed:前缀URI处理程序
+            WebRequest.RegisterPrefix("embed:", new EmbedWebRequestFactory());
 
             //XML转义符
             xmlReplaceDict = new Dictionary<string, string>();

@@ -60,6 +60,8 @@ namespace Demo
             ChangeTheme = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeTheme };
             ChangeLanguage = new DelegateCommand() { ExecuteCommand = executeCommand_ChangeLanguage };
             Test = new DelegateCommand() { ExecuteCommand = executeCommand_Test };
+
+            var abc = Start.ViewManager.GetResource(typeof(ILogin).Assembly, "Search.png");
         }
 
         /// <summary>
