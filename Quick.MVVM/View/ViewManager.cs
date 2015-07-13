@@ -514,7 +514,13 @@ namespace Quick.MVVM.View
                     newResourceUri = new Uri(resourceFullPath).AbsoluteUri;
                 //否则从程序集资源中获取
                 else
-                    newResourceUri = GetResourceUri(assembly, resourceValue).ToString();
+                {
+                    Uri uri = GetResourceUri(assembly, resourceValue);
+                    if (uri == null)
+                        newResourceUri = resourceValue;
+                    else
+                        newResourceUri = uri.ToString();
+                }
                 return String.Format("\"{0}\"", newResourceUri);
             });
             //替换语言资源

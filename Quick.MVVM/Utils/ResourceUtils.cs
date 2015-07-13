@@ -105,10 +105,9 @@ namespace Quick.MVVM.Utils
                         String assemblyNamePrefix = assemblyName + "/";
                         if (resourceName.StartsWith(assemblyNamePrefix))
                             resourceName = resourceName.Substring(assemblyNamePrefix.Length);
-
-                        Uri uri = new Uri(String.Format("pack://application:,,,/{0};component/{1}", assemblyName, resourceName));
-                        if (IsResourceResourceExist(assembly, resourceName))
-                            return uri;
+                        resourceName = GetResourceResourcePath(assembly, resourceName);
+                        if (!String.IsNullOrEmpty(resourceName))
+                            return new Uri(String.Format("pack://application:,,,/{0};component/{1}", assemblyName, resourceName));
                     }
                 }
             }
@@ -118,7 +117,7 @@ namespace Quick.MVVM.Utils
         //程序集的嵌入的资源字典
         private static Dictionary<Assembly, String[]> assemblyEmbedResourceDict = new Dictionary<Assembly, string[]>();
         //程序集的Resource编译的资源字典
-        private static Dictionary<Assembly, String[]> assemblyResourceResourceDict = new Dictionary<Assembly, string[]>();
+        private static Dictionary<Assembly, Dictionary<String, String>> assemblyResourceResourceDict = new Dictionary<Assembly, Dictionary<String, String>>();
 
         public static Boolean IsEmbedResourceExist(Assembly assembly, String resourceName)
         {
@@ -132,13 +131,14 @@ namespace Quick.MVVM.Utils
             }
         }
 
-        public static Boolean IsResourceResourceExist(Assembly assembly, String resourceName)
+        public static String GetResourceResourcePath(Assembly assembly, String resourceName)
         {
+            resourceName = resourceName.Replace('/', '.');
             lock (assemblyResourceResourceDict)
             {
                 if (!assemblyResourceResourceDict.ContainsKey(assembly))
                 {
-                    String[] resourceNameList = new String[0];
+                    String[] resourceList = new String[0];
                     string resBaseName = assembly.GetName().Name + ".g.resources";
                     using (var stream = assembly.GetManifestResourceStream(resBaseName))
                     {
@@ -146,14 +146,21 @@ namespace Quick.MVVM.Utils
                         {
                             using (var reader = new System.Resources.ResourceReader(stream))
                             {
-                                resourceNameList = reader.Cast<DictionaryEntry>().Select(entry =>
+                                resourceList = reader.Cast<DictionaryEntry>().Select(entry =>
                                          (string)entry.Key).ToArray();
                             }
                         }
                     }
-                    assemblyResourceResourceDict[assembly] = resourceNameList;
+                    assemblyResourceResourceDict[assembly] = new Dictionary<string, string>();
+                    foreach (var resource in resourceList)
+                    {
+                        assemblyResourceResourceDict[assembly][resource.Replace('/', '.')] = resource;
+                    }
                 }
-                return assemblyResourceResourceDict[assembly].Contains(resourceName.ToLower());
+                resourceName = resourceName.ToLower();
+                if (assemblyResourceResourceDict[assembly].ContainsKey(resourceName))
+                    return assemblyResourceResourceDict[assembly][resourceName];
+                return null;
             }
         }
 
