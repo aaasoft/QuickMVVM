@@ -11,6 +11,7 @@
         <behavior:FrameworkElementWindowDataBehavior Title="QuickMVVM Demo"  WindowState="Maximized" ResizeMode="CanResize" />
     </i:Interaction.Behaviors>
     <Grid>
+        <Image Source="../Search.png" />
         <TextBlock FontSize="48" Text="Test.IView.xaml!" />
     </Grid>
 </UserControl>

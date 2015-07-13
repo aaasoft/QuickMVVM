@@ -19,7 +19,14 @@
             <TextBlock Text="{}Quick.MVVM Demo" FontSize="18" />
         </StackPanel>
         <DockPanel Grid.Column="1">
-            <Button IsDefault="True" DockPanel.Dock="Bottom" Height="45" Content="{}Login" Margin="10" Command="{Binding Login}" />
+            <Button IsDefault="True" DockPanel.Dock="Bottom" Height="45" Margin="10" Command="{Binding Login}">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="./Search.png" Stretch="None" Margin="0,0,5,0" />
+                        <TextBlock Text="{}Login" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="160" />

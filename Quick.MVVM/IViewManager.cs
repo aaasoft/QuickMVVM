@@ -133,5 +133,12 @@ namespace Quick.MVVM
         /// <param name="resourceName"></param>
         /// <returns></returns>
         Stream GetResource(Assembly assembly, String resourceName);
+        /// <summary>
+        /// 获取资源Uri
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
+        Uri GetResourceUri(Assembly assembly, String resourceName);
     }
 }

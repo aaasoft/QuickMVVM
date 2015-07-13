@@ -81,22 +81,22 @@
       <DependentUpon>StartWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="Theme\ILogin.xaml">
+    <Resource Include="Theme\ILogin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Theme\IMain.xaml">
+    </Resource>
+    <Resource Include="Theme\IMain.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Theme\Head.xaml">
+    </Resource>
+    <Resource Include="Theme\Head.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Theme\Code.xaml">
+    </Resource>
+    <Resource Include="Theme\Code.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
+    </Resource>
     <EmbeddedResource Include="Theme\Test\IView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -134,13 +134,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Language\en-US\ILogin.xaml.txt" />
+    <Resource Include="Language\en-US\ILogin.xaml.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Language\zh-CN\ILogin.xaml.txt" />
+    <Resource Include="Language\zh-CN\ILogin.xaml.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Theme\Search.png" />
+    <EmbeddedResource Include="Theme\Search.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

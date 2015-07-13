@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -41,25 +43,25 @@ namespace Quick.MVVM.Utils
         /// <param name="assembly"></param>
         /// <param name="baseFolder"></param>
         /// <param name="fullFileNameTemplate"></param>
-        /// <param name="templateParams"></param>
+        /// <param name="pathParts"></param>
         /// <returns></returns>
-        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, params Object[] pathParts)
         {
             String findedResourcePath;
-            return GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
+            return GetResource(fileNameList, assembly, baseFolder, out findedResourcePath, pathParts);
         }
 
-        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, out String findedResourcePath, params Object[] templateParams)
+        public static Stream GetResource(List<String> fileNameList, Assembly assembly, String baseFolder, out String findedResourcePath, params Object[] pathParts)
         {
             findedResourcePath = null;
-            Uri uri = GetResourceUri(fileNameList, assembly, baseFolder, fullFileNameTemplate, templateParams);
+            Uri uri = GetResourceUri(fileNameList, assembly, baseFolder, pathParts);
             if (uri == null)
                 return null;
             findedResourcePath = uri.ToString();
             return WebRequest.Create(uri).GetResponse().GetResponseStream();
         }
 
-        public static Uri GetResourceUri(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        public static Uri GetResourceUri(List<String> fileNameList, Assembly assembly, String baseFolder, params Object[] pathParts)
         {
             //文件是否存在
             Boolean isFileExists = false;
@@ -86,49 +88,84 @@ namespace Quick.MVVM.Utils
                 //先寻找嵌入的资源
                 foreach (String fileName in fileNameList)
                 {
-                    //"{0}.[ThemePathInAssembly].{1}"
-                    String resourceName = String.Format(fullFileNameTemplate, templateParams);
+                    String resourceName = String.Join(".", pathParts);
                     resourceName = resourceName.Replace("[fileName]", fileName);
                     resourceName = resourceName.Replace("-", "_");
-                    ManifestResourceInfo resourceInfo = assembly.GetManifestResourceInfo(resourceName);
-                    if (resourceInfo != null)
-                    {
-                        //return new Uri(String.Format("pack://application:,,,/{0};component/{1}", assembly.GetName().Name, resourceName));
+                    if (IsEmbedResourceExist(assembly, resourceName))
                         return new Uri(String.Format("embed://{0}/{1}", assemblyName, resourceName));
-                    }
                 }
                 //然后寻找Resource资源
-                foreach (String fileName in fileNameList)
+                if (IsEmbedResourceExist(assembly, assemblyName + ".g.resources"))
                 {
-                    String resourceName = String.Format(fullFileNameTemplate, templateParams);
-                    resourceName = resourceName.Replace("[fileName]", fileName);
-                    resourceName = resourceName.Replace("-", "_");
-                    //"Theme/Search.png" --> OK
-                    Uri uri = new Uri(String.Format("pack://application:,,,/{0};component/{1}", assemblyName, resourceName));
-
-                    var abc = System.Windows.Application.GetResourceStream(uri);
-                    Stream stream = null;
-                    stream = WebRequest.Create(uri).GetResponse().GetResponseStream();
-                    if (stream != null)
+                    foreach (String fileName in fileNameList)
                     {
-                        stream.Close();
-                        return uri;
+                        String resourceName = String.Join("/", pathParts);
+                        resourceName = resourceName.Replace("[fileName]", fileName);
+
+                        String assemblyNamePrefix = assemblyName + "/";
+                        if (resourceName.StartsWith(assemblyNamePrefix))
+                            resourceName = resourceName.Substring(assemblyNamePrefix.Length);
+
+                        Uri uri = new Uri(String.Format("pack://application:,,,/{0};component/{1}", assemblyName, resourceName));
+                        if (IsResourceResourceExist(assembly, resourceName))
+                            return uri;
                     }
-                    
                 }
             }
             return null;
         }
 
-        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, params Object[] templateParams)
+        //程序集的嵌入的资源字典
+        private static Dictionary<Assembly, String[]> assemblyEmbedResourceDict = new Dictionary<Assembly, string[]>();
+        //程序集的Resource编译的资源字典
+        private static Dictionary<Assembly, String[]> assemblyResourceResourceDict = new Dictionary<Assembly, string[]>();
+
+        public static Boolean IsEmbedResourceExist(Assembly assembly, String resourceName)
         {
-            String findedResourcePath;
-            return GetResourceText(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
+            lock (assemblyEmbedResourceDict)
+            {
+                if (!assemblyEmbedResourceDict.ContainsKey(assembly))
+                {
+                    assemblyEmbedResourceDict[assembly] = assembly.GetManifestResourceNames();
+                }
+                return assemblyEmbedResourceDict[assembly].Contains(resourceName);
+            }
         }
 
-        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, String fullFileNameTemplate, out String findedResourcePath, params Object[] templateParams)
+        public static Boolean IsResourceResourceExist(Assembly assembly, String resourceName)
         {
-            Stream resourceStream = GetResource(fileNameList, assembly, baseFolder, fullFileNameTemplate, out findedResourcePath, templateParams);
+            lock (assemblyResourceResourceDict)
+            {
+                if (!assemblyResourceResourceDict.ContainsKey(assembly))
+                {
+                    String[] resourceNameList = new String[0];
+                    string resBaseName = assembly.GetName().Name + ".g.resources";
+                    using (var stream = assembly.GetManifestResourceStream(resBaseName))
+                    {
+                        if (stream != null)
+                        {
+                            using (var reader = new System.Resources.ResourceReader(stream))
+                            {
+                                resourceNameList = reader.Cast<DictionaryEntry>().Select(entry =>
+                                         (string)entry.Key).ToArray();
+                            }
+                        }
+                    }
+                    assemblyResourceResourceDict[assembly] = resourceNameList;
+                }
+                return assemblyResourceResourceDict[assembly].Contains(resourceName.ToLower());
+            }
+        }
+
+        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, params Object[] pathParts)
+        {
+            String findedResourcePath;
+            return GetResourceText(fileNameList, assembly, baseFolder, out findedResourcePath, pathParts);
+        }
+
+        public static String GetResourceText(List<String> fileNameList, Assembly assembly, String baseFolder, out String findedResourcePath, params Object[] pathParts)
+        {
+            Stream resourceStream = GetResource(fileNameList, assembly, baseFolder, out findedResourcePath, pathParts);
             if (resourceStream == null)
                 return null;
 

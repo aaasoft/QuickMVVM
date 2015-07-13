@@ -229,8 +229,8 @@ namespace Quick.MVVM.View
                     languageFileNameList,
                     assembly,
                     languageBaseFolder,
-                    "{0}." + this.Config.LanguagePathInAssembly + ".{1}.[fileName]",
-                    assemblyName, this.CurrentLanguage
+                //路径
+                    assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage, "[fileName]"
                 );
             if (languageContent != null)
             {
@@ -249,8 +249,8 @@ namespace Quick.MVVM.View
                     languageFileNameList,
                     assembly,
                     Path.Combine(viewBaseFolder, this.Config.LanguagePathInAssembly, this.CurrentLanguage),
-                    "{0}." + this.Config.ThemePathInAssembly + ".{1}.{2}.[fileName]",
-                    assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage
+                //路径
+                    assemblyName, this.Config.LanguagePathInAssembly, this.CurrentLanguage, "[fileName]"
                 );
             if (languageContent != null)
             {
@@ -427,8 +427,22 @@ namespace Quick.MVVM.View
                 new List<String>() { resourceName },
                 assembly,
                 viewBaseFolder,
-                "{0}." + this.Config.ThemePathInAssembly + ".[fileName]",
-                assemblyName);
+                //路径
+                assemblyName, this.Config.ThemePathInAssembly, "[fileName]");
+        }
+
+        public Uri GetResourceUri(Assembly assembly, String resourceName)
+        {
+            //视图模型接口类所在的程序集名称
+            String assemblyName = assembly.GetName().Name;
+            String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, CurrentTheme, assemblyName);
+
+            return ResourceUtils.GetResourceUri(
+                new List<String>() { resourceName },
+                assembly,
+                viewBaseFolder,
+                //路径
+                assemblyName, this.Config.ThemePathInAssembly, "[fileName]");
         }
 
         private String getXamlContent(String resourcePath, Assembly assembly)
@@ -452,8 +466,8 @@ namespace Quick.MVVM.View
                 viewXamlFileNameList,
                 assembly,
                 themeFolder,
-                "{0}." + this.Config.ThemePathInAssembly + ".[fileName]",
-                assemblyName);
+                //路径
+                assemblyName, this.Config.ThemePathInAssembly, "[fileName]");
             if (xamlContent == null)
                 return null;
 
@@ -500,7 +514,7 @@ namespace Quick.MVVM.View
                     newResourceUri = new Uri(resourceFullPath).AbsoluteUri;
                 //否则从程序集资源中获取
                 else
-                    newResourceUri = String.Format("pack://application:,,,/{0};component/" + this.Config.ThemePathInAssembly + "/{1}", assemblyName, resourceValue);
+                    newResourceUri = GetResourceUri(assembly, resourceValue).ToString();
                 return String.Format("\"{0}\"", newResourceUri);
             });
             //替换语言资源
