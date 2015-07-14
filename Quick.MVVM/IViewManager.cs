@@ -13,7 +13,7 @@ namespace Quick.MVVM
     /// <summary>
     /// 视图管理器接口
     /// </summary>
-    public interface IViewManager
+    public interface IViewManager : IDisposable
     {
         /// <summary>
         /// 获取或设置视图模型管理器
@@ -140,5 +140,11 @@ namespace Quick.MVVM
         /// <param name="resourceName"></param>
         /// <returns></returns>
         Uri GetResourceUri(Assembly assembly, String resourceName);
+        /// <summary>
+        /// 获取指定程序集的所有资源信息
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        String[] GetResourcePaths(Assembly assembly);
     }
 }

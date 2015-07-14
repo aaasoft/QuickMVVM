@@ -24,6 +24,8 @@ namespace Quick.MVVM.View
         public const String CONST_DEFAULT_THEME = "Default";
         public const String CONST_DEFAULT_LANGUAGE = "zh-CN";
 
+        public static HashSet<ViewManager> AllViewManagerHashSet = new HashSet<ViewManager>();
+
         //类的语言资源字典
         private static Dictionary<String, Dictionary<Int32, String>> typeLanguageResourceDict = new Dictionary<String, Dictionary<int, string>>();
         private static DependencyProperty CurrentThemeProperty = DependencyProperty.RegisterAttached("CurrentTheme", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_THEME));
@@ -54,7 +56,7 @@ namespace Quick.MVVM.View
         /// 配置
         /// </summary>
         public ViewManagerConfig Config { get; set; }
-        
+
         private String currentTheme = CONST_DEFAULT_THEME;
         private String currentLanguage = CONST_DEFAULT_LANGUAGE;
 
@@ -107,7 +109,7 @@ namespace Quick.MVVM.View
                     typeLanguageResourceDict.Clear();
                 }
                 fireEvent(LanguageChanged);
-                reloadView();                
+                reloadView();
             }
         }
 
@@ -117,14 +119,19 @@ namespace Quick.MVVM.View
                 eventHandler.Invoke(this, EventArgs.Empty);
         }
 
-        public ViewManager(ViewManagerConfig config)
+        static ViewManager()
         {
-            this.Config = config;
-
             //注册pack:前缀URI处理程序
             WebRequest.RegisterPrefix("pack:", new System.IO.Packaging.PackWebRequestFactory());
             //注册embed:前缀URI处理程序
             WebRequest.RegisterPrefix("embed:", new EmbedWebRequestFactory());
+            //注册resource:前缀URI处理程序
+            WebRequest.RegisterPrefix("resource:", new ResourceWebRequestFactory());
+        }
+
+        public ViewManager(ViewManagerConfig config)
+        {
+            this.Config = config;
 
             //XML转义符
             xmlReplaceDict = new Dictionary<string, string>();
@@ -133,6 +140,8 @@ namespace Quick.MVVM.View
             xmlReplaceDict.Add(">", "&gt;");
             xmlReplaceDict.Add("\"", "&quot;");
             xmlReplaceDict.Add("'", "&apos;");
+
+            AllViewManagerHashSet.Add(this);
         }
 
         //重新加载视图
@@ -445,6 +454,13 @@ namespace Quick.MVVM.View
                 assemblyName, this.Config.ThemePathInAssembly, "[fileName]");
         }
 
+        public String[] GetResourcePaths(Assembly assembly)
+        {
+            String assemblyName = assembly.GetName().Name;
+            String viewBaseFolder = Path.Combine(this.Config.ThemeFolder, CurrentTheme, assemblyName);
+            return ResourceUtils.GetResourcePaths(assembly, viewBaseFolder, Config.ThemePathInAssembly);
+        }
+
         private String getXamlContent(String resourcePath, Assembly assembly)
         {
             //视图模型接口类所在的程序集名称
@@ -646,7 +662,7 @@ namespace Quick.MVVM.View
 
             //搜索语言目录
             DirectoryInfo languageFolderDi = new DirectoryInfo(this.Config.LanguageFolder);
-            if(languageFolderDi.Exists)
+            if (languageFolderDi.Exists)
             {
                 foreach (String languageName in languageFolderDi.GetDirectories().Select(t => t.Name))
                 {
@@ -674,6 +690,11 @@ namespace Quick.MVVM.View
             if (!collection.Contains(ViewManager.CONST_DEFAULT_LANGUAGE))
                 collection.Insert(0, ViewManager.CONST_DEFAULT_LANGUAGE);
             return collection.ToArray();
+        }
+
+        public void Dispose()
+        {
+            AllViewManagerHashSet.Remove(this);
         }
     }
 }
