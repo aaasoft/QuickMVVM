@@ -19,7 +19,7 @@ namespace Quick.MVVM.View
         {
             //embed://{0}/{1}
             Assembly assembly = Assembly.Load(uri.Host);
-            String resourceName = uri.AbsolutePath;
+            String resourceName = uri.LocalPath;
             while (resourceName.StartsWith("/"))
                 resourceName = resourceName.Substring(1);
             return new EmbedWebResponse(assembly, resourceName);

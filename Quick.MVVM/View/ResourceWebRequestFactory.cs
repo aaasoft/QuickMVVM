@@ -20,7 +20,7 @@ namespace Quick.MVVM.View
         {
             //resource://{0}/{1}
             Assembly assembly = Assembly.Load(uri.Host);
-            String resourceName = uri.AbsolutePath;
+            String resourceName = uri.LocalPath;
             while (resourceName.StartsWith("/"))
                 resourceName = resourceName.Substring(1);
             Uri forwardUri = null;
