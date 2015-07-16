@@ -205,7 +205,8 @@ namespace Quick.MVVM.Utils
                 String dirFullName = di.FullName;
                 foreach (var fi in di.GetFiles("*.*", SearchOption.AllDirectories))
                 {
-                    resourcePathList.Add(fi.FullName.Substring(dirFullName.Length));
+                    var parts = fi.FullName.Substring(dirFullName.Length).Split(new Char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+                    resourcePathList.Add(String.Join(".", parts));
                 }
             }
             //然后搜索程序集中的嵌入资源
