@@ -102,6 +102,13 @@ namespace Quick.MVVM
         /// <param name="index">序号，从1开始</param>
         /// <returns></returns>
         String GetText<T>(Int32 index);
+        /// <summary>
+        /// 获取语言文字
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="index">序号</param>
+        /// <returns></returns>
+        String GetText<T>(Enum index);
 
         /// <summary>
         /// 获取语言文字
@@ -109,6 +116,12 @@ namespace Quick.MVVM
         /// <param name="index">序号，从1开始</param>
         /// <returns></returns>
         String GetText(Int32 index, Type type);
+        /// <summary>
+        /// 获取语言文字
+        /// </summary>
+        /// <param name="index">序号</param>
+        /// <returns></returns>
+        String GetText(Enum index, Type type);
         /// <summary>
         /// 获取全部可用的主题列表
         /// </summary>

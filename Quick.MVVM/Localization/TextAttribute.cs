@@ -24,5 +24,10 @@ namespace Quick.MVVM.Localization
             this.Index = index;
             this.Value = value;
         }
+        public TextAttribute(Enum index, String value)
+        {
+            this.Index = Convert.ToInt32(index);
+            this.Value = value;
+        }
     }
 }

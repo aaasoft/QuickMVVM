@@ -284,6 +284,16 @@ namespace Quick.MVVM.View
             return GetText(index, typeof(T));
         }
 
+        public String GetText<T>(Enum index)
+        {
+            return GetText(index, typeof(T));
+        }
+
+        public String GetText(Enum index, Type type)
+        {
+            return GetText(Convert.ToInt32(index), type);
+        }
+
         /// <summary>
         /// 获取语言文字
         /// </summary>
@@ -297,6 +307,7 @@ namespace Quick.MVVM.View
                 return String.Format("Language Resource[Type:{0}, Index:{1}] not found!", type.FullName, index);
             return languageResourceDict[index];
         }
+
 
         public void RegisterView<TViewModelType, TViewType>()
             where TViewModelType : IViewModel
