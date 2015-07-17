@@ -1,4 +1,5 @@
-﻿using Quick.MVVM.ViewModel;
+﻿using Quick.MVVM.Localization;
+using Quick.MVVM.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +35,24 @@ namespace Demo
 
     class _ILogin : QM_ViewModelBase, ILogin
     {
+        /// <summary>
+        /// 文本资源
+        /// </summary>
+        [TextResource]
+        public enum Texts
+        {
+            [Text("正在准备数据库连接...")]
+            WAIT_PREPERA_DB,
+            [Text("正在验证用户名和密码...")]
+            WAIT_VERIFY_USER_PASSWORD,
+            [Text("正在准备数据...")]
+            WAIT_PREPERA_DATA,
+            [Text("用户名密码验证失败!")]
+            ERROR_USER_PASSWORD_INCORRECT,
+            [Text("设置")]
+            BUTTON_SETTING
+        }
+
         private String _UserName;
         public string UserName
         {
@@ -52,6 +71,7 @@ namespace Demo
 
         public override void Init()
         {
+            var abc = Start.ViewManager.GetText(Texts.WAIT_PREPERA_DATA);
             Login = new DelegateCommand()
             {
                 ExecuteCommand = executeCommand_Login,

@@ -27,7 +27,7 @@ namespace Quick.MVVM.View
         public static HashSet<ViewManager> AllViewManagerHashSet = new HashSet<ViewManager>();
 
         //类的语言资源字典
-        private static Dictionary<String, Dictionary<Int32, String>> typeLanguageResourceDict = new Dictionary<String, Dictionary<int, string>>();
+        private static Dictionary<String, Dictionary<String, String>> typeLanguageResourceDict = new Dictionary<String, Dictionary<String, string>>();
         private static DependencyProperty CurrentThemeProperty = DependencyProperty.RegisterAttached("CurrentTheme", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_THEME));
         private static DependencyProperty CurrentLanguageProperty = DependencyProperty.RegisterAttached("CurrentLanguage", typeof(String), typeof(FrameworkElement), new PropertyMetadata(CONST_DEFAULT_LANGUAGE));
 
@@ -170,7 +170,7 @@ namespace Quick.MVVM.View
             }
         }
 
-        private Dictionary<Int32, String> getLanguageResourceDict(Type type)
+        private Dictionary<String, String> getLanguageResourceDict(Type type)
         {
             String key = String.Format("{0};{1}", type.Assembly.GetName().Name, type.FullName);
             lock (typeLanguageResourceDict)
@@ -178,18 +178,23 @@ namespace Quick.MVVM.View
                 if (typeLanguageResourceDict.ContainsKey(key))
                     return typeLanguageResourceDict[key];
 
-                Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
+                Dictionary<String, String> languageResourceDict = new Dictionary<String, string>();
                 typeLanguageResourceDict.Add(key, languageResourceDict);
-                //读取类的TextAttribute特性
-                Object[] objs = type.GetCustomAttributes(typeof(TextAttribute), false);
-                //==========================
-                //先从类特性中读取
-                //==========================
-                if (objs != null && objs.Length > 0)
+
+                if (type.IsEnum && type.GetCustomAttributes(typeof(TextResourceAttribute), false).Length > 0)
                 {
-                    foreach (TextAttribute textAttribute in objs)
+                    foreach (Enum item in Enum.GetValues(type))
                     {
-                        languageResourceDict.Add(textAttribute.Index, textAttribute.Value);
+                        MemberInfo itemMemberInfo = type.GetMember(item.ToString())[0];
+                        var textAttributes = itemMemberInfo.GetCustomAttributes(typeof(TextAttribute), false).Cast<TextAttribute>();
+                        TextAttribute textAttribute = textAttributes.Where(attr => attr.Language == CurrentLanguage).FirstOrDefault();
+                        if (textAttribute == null)
+                            textAttribute = textAttributes.Where(attr => attr.Language == TextAttribute.DEFAULT_LANGUAGE).FirstOrDefault();
+                        if (textAttribute == null)
+                            textAttribute = textAttributes.FirstOrDefault();
+                        if (textAttribute == null)
+                            continue;
+                        languageResourceDict.Add(item.ToString(), textAttribute.Value);
                     }
                 }
                 fillLanguageResourceDict(type.Assembly, type.FullName, languageResourceDict);
@@ -197,21 +202,21 @@ namespace Quick.MVVM.View
             }
         }
 
-        private Dictionary<Int32, String> getLanguageResourceDict(Assembly assembly, String resourcePath, params TextAttribute[] textAttributes)
+        private Dictionary<String, String> getLanguageResourceDict(Assembly assembly, String resourcePath, params TextAttribute[] textAttributes)
         {
             String key = String.Format("{0};{1}", assembly.GetName().Name, resourcePath);
             lock (typeLanguageResourceDict)
             {
                 if (typeLanguageResourceDict.ContainsKey(key))
                     return typeLanguageResourceDict[key];
-                Dictionary<Int32, String> languageResourceDict = new Dictionary<int, string>();
+                Dictionary<String, String> languageResourceDict = new Dictionary<String, string>();
                 typeLanguageResourceDict.Add(key, languageResourceDict);
                 fillLanguageResourceDict(assembly, resourcePath, languageResourceDict);
                 return languageResourceDict;
             }
         }
 
-        private void fillLanguageResourceDict(Assembly assembly, String resourcePath, Dictionary<Int32, String> languageResourceDict)
+        private void fillLanguageResourceDict(Assembly assembly, String resourcePath, Dictionary<String, String> languageResourceDict)
         {
             //==========================
             //然后尝试从资源文件中读取
@@ -244,11 +249,11 @@ namespace Quick.MVVM.View
             if (languageContent != null)
             {
                 var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
-                foreach (int index in tmpDict.Keys)
+                foreach (String key in tmpDict.Keys)
                 {
-                    if (languageResourceDict.ContainsKey(index))
-                        languageResourceDict.Remove(index);
-                    languageResourceDict.Add(index, tmpDict[index]);
+                    if (languageResourceDict.ContainsKey(key))
+                        languageResourceDict.Remove(key);
+                    languageResourceDict.Add(key, tmpDict[key]);
                 }
             }
 
@@ -264,11 +269,11 @@ namespace Quick.MVVM.View
             if (languageContent != null)
             {
                 var tmpDict = Quick.MVVM.Utils.ResourceUtils.GetLanguageResourceDictionary(languageContent);
-                foreach (int index in tmpDict.Keys)
+                foreach (String key in tmpDict.Keys)
                 {
-                    if (languageResourceDict.ContainsKey(index))
-                        languageResourceDict.Remove(index);
-                    languageResourceDict.Add(index, tmpDict[index]);
+                    if (languageResourceDict.ContainsKey(key))
+                        languageResourceDict.Remove(key);
+                    languageResourceDict.Add(key, tmpDict[key]);
                 }
             }
         }
@@ -276,38 +281,21 @@ namespace Quick.MVVM.View
         /// <summary>
         /// 获取语言文字
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="index">序号，从1开始</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public String GetText<T>(Int32 index)
+        public String GetText(Enum key)
         {
-            return GetText(index, typeof(T));
+            return GetText(key.ToString(), key.GetType());
         }
 
-        public String GetText<T>(Enum index)
+        public String GetText(String key,Type type)
         {
-            return GetText(index, typeof(T));
-        }
-
-        public String GetText(Enum index, Type type)
-        {
-            return GetText(Convert.ToInt32(index), type);
-        }
-
-        /// <summary>
-        /// 获取语言文字
-        /// </summary>
-        /// <param name="index">序号，从1开始</param>
-        /// <returns></returns>
-        public String GetText(Int32 index, Type type)
-        {
-            Dictionary<Int32, String> languageResourceDict = getLanguageResourceDict(type);
+            Dictionary<String, String> languageResourceDict = getLanguageResourceDict(type);
             if (languageResourceDict == null
-                || !languageResourceDict.ContainsKey(index))
-                return String.Format("Language Resource[Type:{0}, Index:{1}] not found!", type.FullName, index);
-            return languageResourceDict[index];
+                || !languageResourceDict.ContainsKey(key))
+                return String.Format("Language Resource[Type:{0}, Key:{1}] not found!", type.FullName, key);
+            return languageResourceDict[key];
         }
-
 
         public void RegisterView<TViewModelType, TViewType>()
             where TViewModelType : IViewModel
@@ -551,7 +539,7 @@ namespace Quick.MVVM.View
                 return String.Format("\"{0}\"", newResourceUri);
             });
             //替换语言资源
-            Dictionary<Int32, String> languageDict = getLanguageResourceDict(assembly, resourcePath + Config.ViewFileExtension);
+            Dictionary<String, String> languageDict = getLanguageResourceDict(assembly, resourcePath + Config.ViewFileExtension);
             if (languageDict != null)
             {
                 //"(?'value'{}.*?)"
@@ -560,9 +548,10 @@ namespace Quick.MVVM.View
                 xamlContent = regex.Replace(xamlContent, match =>
                     {
                         languageIndex++;
-                        if (languageDict.ContainsKey(languageIndex))
+                        String languageIndexStr = languageIndex.ToString();
+                        if (languageDict.ContainsKey(languageIndexStr))
                         {
-                            String value = languageDict[languageIndex];
+                            String value = languageDict[languageIndexStr];
                             foreach (String replaceKey in xmlReplaceDict.Keys)
                                 if (value.Contains(replaceKey))
                                 {

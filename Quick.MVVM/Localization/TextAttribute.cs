@@ -6,27 +6,33 @@ using System.Text;
 namespace Quick.MVVM.Localization
 {
     /// <summary>
-    /// 文本特性
+    /// 语言资源枚举
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Enum)]
+    public class TextResourceAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+    /// 语言资源枚举值对应的文本
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class TextAttribute : Attribute
     {
-        /// <summary>
-        /// 序号
-        /// </summary>
-        public Int32 Index { get; set; }
-        /// <summary>
-        /// 值
-        /// </summary>
+        public const String DEFAULT_LANGUAGE = "zh-CN";
+
+        public String Language { get; set; }
         public String Value { get; set; }
-        public TextAttribute(Int32 index, String value)
+
+        public TextAttribute(String value)
         {
-            this.Index = index;
+            this.Language =DEFAULT_LANGUAGE;
             this.Value = value;
         }
-        public TextAttribute(Enum index, String value)
+
+        public TextAttribute(String language, String value)
         {
-            this.Index = Convert.ToInt32(index);
+            this.Language = language;
             this.Value = value;
         }
     }

@@ -94,34 +94,19 @@ namespace Quick.MVVM
         /// <returns></returns>
         Object GetView<TViewModelType>(Action<TViewModelType> initAction)
             where TViewModelType : class,IViewModel;
-
         /// <summary>
-        /// 获取语言文字
+        /// 获取语言文本
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="index">序号，从1开始</param>
+        /// <param name="key">键</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        String GetText<T>(Int32 index);
+        String GetText(String key, Type type);
         /// <summary>
-        /// 获取语言文字
+        /// 获取语言文本
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="index">序号</param>
+        /// <param name="key">Key</param>
         /// <returns></returns>
-        String GetText<T>(Enum index);
-
-        /// <summary>
-        /// 获取语言文字
-        /// </summary>
-        /// <param name="index">序号，从1开始</param>
-        /// <returns></returns>
-        String GetText(Int32 index, Type type);
-        /// <summary>
-        /// 获取语言文字
-        /// </summary>
-        /// <param name="index">序号</param>
-        /// <returns></returns>
-        String GetText(Enum index, Type type);
+        String GetText(Enum key);
         /// <summary>
         /// 获取全部可用的主题列表
         /// </summary>

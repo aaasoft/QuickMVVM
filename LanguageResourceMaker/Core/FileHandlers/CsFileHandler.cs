@@ -11,8 +11,10 @@ namespace LanguageResourceMaker.Core.FileHandlers
 {
     public class CsFileHandler : AbstractFileHandler
     {
-        //\[(?'name'.*?)\s*?\(\s*?(?'index'-?\d+)\s*?,\s*?"(?'value'.*?)"\s*\)\s*]
-        private Regex regex = new Regex("\\[(?'name'.*?)\\s*?\\(\\s*?(?'index'-?\\d+)\\s*?,\\s*?\"(?'value'.*?)\"\\s*\\)\\s*]");
+        //\[Text\s\("*(?'value'.*)"\)]\s*(?'key'[^,}]*),?
+        private Regex regex = new Regex("\\[Text\\s\\(\"*(?'value'.*)\"\\)]\\s*(?'key'[^,}]*),?");
+        //\[(?'name'.*?)(?'args'\(.*\))*]
+        private Regex getAttrubuteNameRegex = new Regex("\\[(?'name'.*?)(?'args'\\(.*\\))*]");
 
         public override void Handle(FileInfo viewFile, DirectoryInfo projectFolder)
         {
@@ -33,19 +35,29 @@ namespace LanguageResourceMaker.Core.FileHandlers
 
         private void handle(TypeDeclaration type, DirectoryInfo projectFolder)
         {
+            if (type.ClassType != ClassType.Enum)
+                return;
+
             Dictionary<String, String> textDict = new Dictionary<string, string>();
             foreach (AttributeSection attribute in type.Attributes)
             {
                 String attributeText = attribute.ToString();
-                Match match = regex.Match(attributeText);
-                Group nameGroup = match.Groups["name"];
-                Group indexGroup = match.Groups["index"];
-                Group valueGroup = match.Groups["value"];
-                if (!nameGroup.Success || nameGroup.Value != "Text" || !indexGroup.Success || !valueGroup.Success)
+                Match attributeNameMatch = getAttrubuteNameRegex.Match(attribute.ToString());
+
+                Group attributeNameGroup = attributeNameMatch.Groups["name"];
+                if (!attributeNameGroup.Success || attributeNameGroup.Value != "TextResource")
                     continue;
-                String index = indexGroup.Value;
-                String value = valueGroup.Value;
-                textDict.Add(index, value);
+
+                foreach (Match match in regex.Matches(type.ToString()))
+                {
+                    Group keyGroup = match.Groups["key"];
+                    Group valueGroup = match.Groups["value"];
+                    if (!keyGroup.Success || !valueGroup.Success)
+                        continue;
+                    String key = keyGroup.Value.Trim();
+                    String value = valueGroup.Value.Trim();
+                    textDict.Add(key, value);
+                }
             }
             if (textDict.Count == 0)
                 return;

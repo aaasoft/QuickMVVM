@@ -250,21 +250,21 @@ namespace Quick.MVVM.Utils
         /// </summary>
         /// <param name="languageContent"></param>
         /// <returns></returns>
-        public static Dictionary<Int32, String> GetLanguageResourceDictionary(String languageContent)
+        public static Dictionary<String, String> GetLanguageResourceDictionary(String languageContent)
         {
-            Dictionary<Int32, String> languageDict = new Dictionary<int, string>();
+            Dictionary<String, String> languageDict = new Dictionary<String, string>();
 
-            //(?'index'\d+)\s*=(?'value'.+)
-            Regex regex = new Regex(@"(?'index'\d+)\s*=(?'value'.+)");
+            //(?'key'.+)\s*=(?'value'.+)
+            Regex regex = new Regex(@"(?'key'.+)\s*=(?'value'.+)");
             MatchCollection languageMatchCollection = regex.Matches(languageContent);
             foreach (Match match in languageMatchCollection)
             {
-                var indexGroup = match.Groups["index"];
+                var indexGroup = match.Groups["key"];
                 var valueGroup = match.Groups["value"];
 
                 if (!indexGroup.Success || !valueGroup.Success)
                     continue;
-                Int32 key = Int32.Parse(indexGroup.Value);
+                String key = indexGroup.Value;
                 String value = valueGroup.Value;
                 if (value.EndsWith("\r"))
                     value = value.Substring(0, value.Length - 1);
